@@ -28,7 +28,7 @@ if response.status_code == 200:
     data = response.json()
 
 
-
+    #pritty print i terminal
     print(json.dumps(data, indent=2))
 
     timeseries = data["properties"]["timeseries"][:5]
