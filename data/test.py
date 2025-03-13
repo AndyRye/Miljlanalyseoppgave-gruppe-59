@@ -40,6 +40,10 @@ if response.status_code == 200:
         wind_speed = entry["data"]["instant"]["details"]["wind_speed"]
         weather_data.append([time, temp, wind_speed])
 
+    with open(r"C:\Users\amund\OneDrive\Skrivebord\Anvendt programering\Miljlanalyseoppgave-gruppe-59\data\data.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=4)
+        
+
     #oppretter en dataframe vha pandas
     df = pd.DataFrame(weather_data, columns=["Tid", "Temperatur (C)", "Vindhastighet (m/s)"])
 
@@ -47,6 +51,7 @@ if response.status_code == 200:
 
 else:
     print(f"Feil oppstod ved henting av data: {response.status_code}")
+
 
 
 
