@@ -1,6 +1,5 @@
 import pandas as pd
 import json
-
 import requests
 
 #Url lenka til YR sin API
@@ -23,6 +22,11 @@ headers = {
 response = requests.get(url, params = params,  headers = headers)
 
 # vi skjekker om forespørselen er vellykket
+
+
+response = requests.get(url, params = params, headers = headers)
+
+
 
 if response.status_code == 200:
     data = response.json()
