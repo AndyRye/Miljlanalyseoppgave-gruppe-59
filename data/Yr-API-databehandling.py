@@ -36,6 +36,9 @@ try:
     #Vi konverterer vår respons til JSON
     data = response.json()
 
+    #pretty print i terminal
+    print(json.dumps(data, indent=2))
+
     #Nå skjekker vi om de forventede nøklene finnes i JSON-dataene
     if "properties" not in data or "timeseries" not in data["properties"]:
         raise KeyError("NB JSON-struktur er ikke som forventet!")
