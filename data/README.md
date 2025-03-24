@@ -8,7 +8,16 @@ Vi vurderte å bruke Open weather forecast, men vi ønsket ikke å logge inn med
 
 Det viktigste ved databehandlingen er å passe på at man ikke får urealistiske dataer. Derfor har vi begrenset temperaturen til å være mellom -50 og 50. Vi ønsker heller ikke å bare fjerne dataradene som mangler. Eksempel hvis det blåser gjevnt gjennom daten med 10 m/s, men vi mangler data kl 11. så er det dumt å fjerne dataen og sette lik 0. Dermed ønsler vi å finne en gjennomsnittstemp før og etter for å gi en mer realistisk værdata. Her ønsker vi å bruke Pandas SQL
 
+
+sammelign med api med andre, jo kulere jo fete jo bedre. Lag en værapp, sammenlig og lag en intensjonertrjgoijoi toijt@ itij@åøijoøet@ åæoiqi4pi
+
+
+
 # Tittel
+
+
+
+
 
 ## Undertittel
 

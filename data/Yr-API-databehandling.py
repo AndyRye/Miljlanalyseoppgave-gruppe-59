@@ -40,7 +40,7 @@ try:
     #pretty print i terminal
     print(json.dumps(data, indent=2))
 
-    #Nå skjekker vi om de forventede nøklene finnes i JSON-dataene
+    #Nå skjekker vi om de forventede nøkklene finnes i JSON-dataene
     if "properties" not in data or "timeseries" not in data["properties"]:
         raise KeyError("NB JSON-struktur er ikke som forventet!")
     
@@ -100,6 +100,7 @@ except requests.exceptions.RequestException as e:
 except (KeyError, ValueError, TypeError) as e:
     print(f"NB! JSON-feil: {e}")
 
+#Vi innser nå at denne coden er veldig chunky. Og vi har som mål å dele denne opp i objektorientert klasser
 
 
 
