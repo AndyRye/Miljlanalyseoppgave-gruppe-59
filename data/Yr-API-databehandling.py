@@ -1,6 +1,7 @@
 import pandas as pd
 import json
 import requests
+import matplotlib.pyplot as plt
 
 
 
@@ -44,7 +45,7 @@ try:
         raise KeyError("NB JSON-struktur er ikke som forventet!")
     
     #Henter de første fem tidspunktene
-    timeseries = data["properties"]["timeseries"][:5]
+    timeseries = data["properties"]["timeseries"][:24]
 
     weather_data = []
     for entry in timeseries:
@@ -86,13 +87,24 @@ try:
     print("\n Renset Værdata")
     print(df)
 
+    fig, ax1 = plt.subplots()
+    ax1.plot(df['Tid'],df['Temperatur (C)'])
+    ax1.set_xlabel('Tid')
+    ax1.set_ylabel('Tempratur (C)')
+    plt.show()
+
+
+
 except requests.exceptions.RequestException as e:
     print(f"NB! Feil ved henting av API-data {e}")
 except (KeyError, ValueError, TypeError) as e:
     print(f"NB! JSON-feil: {e}")
 
 
-    
+
+
+
+
 
 
 
