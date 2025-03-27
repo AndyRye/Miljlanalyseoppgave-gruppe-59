@@ -1,7 +1,10 @@
 import pandas as pd
 import json
 import requests
+import matplotlib.pyplot as plt
+import datetime
 
+import seaborn as sns
 
 class WeatherAPI:
     def __init__(self):
@@ -113,9 +116,59 @@ if __name__ == "__main__":
 
 
 
+class Weather_Plotting:
+    def __init__(self, weather_data):
+
+        #henter ut værdataen å forsikrer at den er i pandas dataframe format
+
+        if isinstance(weather_data, list):
+            self.df = WeatherDataCleaner(weather_data).clean()
+
+        elif isinstance(weather_data, pd.DataFrame):
+            self.df = weather_data
+
+        else:
+            raise ValueError("Ikke kompatibelt Dataformat")
+        
+        #sjekker at dataen som kommer inn i klassen minst har kolonnene ["Tid", "Temperatur (C)", "Vindhastighet (m/s)"]
+
+        expeted_colum = ["Tid", "Temperatur (C)", "Vindhastighet (m/s)"]
+        if not all(col in self.df.columns for col in expeted_colum):
+            raise ValueError(f"Datasettet mangler påkrevde kolonner, forventet:{expeted_colum}")
     
-   
+    def Plott_Temperatur(self):
+        fig, ax1 = plt.subplots(figsize=(7,5))
+        sns.lineplot(x = "Tid",  y = "Temperatur (C)", hue = "Temperatur (C)", palette = "coolwarm", data = self.df, ax = ax1)
+        ax1.set_xlabel("tid")
+        ax1.set_ylabel("Temperatur")
+        ax1.set_title("Temperatur Over Tid")
+        ax1.grid(True)
+        plt.show()
+
+    def Scatterplott_Temperatur(self):
+        fig, ax2 = plt.subplots(figsize=(7,5))
+        
+        sns.scatterplot(x = "Tid", y= "Temperatur (C)", hue = "Temperatur (C)", pallette = "magma", data= self.df, ax = ax2)
+        ax2.set_xlabel("tid")
+        ax2.set_ylabel("Temperatur")
+        ax2.set_title("Temperatur Over Tid")
+        plt.show()
+
+    def Plott_Vindhastighet(self):
+        fig, ax3 = plt.subplots(figsize=(7,5))
+
+        ax3.plot(self.df["Tid"], self.df["Vindhastighet (m/s)"], color = "blue")
+        ax3.set_title("Vindhastighet")
+        ax3.set_xlabel("Tid")
+        ax3.set_ylabel("vindhastighet")
+        ax3.legend(["Vindhastighet"])
+        plt.show()
+
+        
 
 
-    
-    
+        
+
+
+
+
