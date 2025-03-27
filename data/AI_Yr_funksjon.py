@@ -5,7 +5,8 @@ from google.genai import types
 from datetime import datetime, timedelta, timezone
 from dateutil import parser
 from typing import Optional
-
+from dotenv import load_dotenv
+load_dotenv()
 
 def get_geo_coordinates(city: str) -> Optional[dict]:
     """Get latitude and longitude for a city using Nominatim.
@@ -73,6 +74,7 @@ config = types.GenerateContentConfig(
 api_key = os.getenv('GOOGLE_API_KEY')
 client = genai.Client(api_key=api_key)
 
+
 input = input("Enter your weather query: ")
 
 response = client.models.generate_content(
@@ -85,8 +87,11 @@ response = client.models.generate_content(
 
         Todays date is {datetime.now().isoformat()}
 
+        
+
         Query: {input}
     """
 )
 
 print(response.text)
+
