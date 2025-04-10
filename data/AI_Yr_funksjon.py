@@ -85,6 +85,11 @@ response = client.models.generate_content(
 
         you should present the data in a human-readable format, adding emojis as you see fit.
 
+        If you don't understand the question, don't ask following questions, just assume what the user meant.
+
+        When the user ask where it is the best weather. Prioritiez the high temperature, then sun, and low wind. Use all the data you are given and select the best place in Norway.
+
+        If the user doesnt give you a spesific date. asssume it is tomorrow
         Todays date is {datetime.now().isoformat()}
 
         
