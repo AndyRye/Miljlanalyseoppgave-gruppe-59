@@ -45,7 +45,7 @@ class WeatherAPI:
         if "properties" not in self.data or "timeseries" not in self.data["properties"]:
             raise KeyError("NB JSON-struktur er ikke som forventet!")
         
-
+ 
     def get_week_view(self):
         if self.data is None:
             self.fetch()
@@ -163,6 +163,8 @@ class Weather_Plotting:
         ax3.set_ylabel("vindhastighet")
         ax3.legend(["Vindhastighet"])
         plt.show()
+
+
 
         
 
