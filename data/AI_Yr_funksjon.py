@@ -66,37 +66,104 @@ def get_weather_forecast(lat: float, lon: float, start_date: str, end_date: str)
 
     return forecasts
 
+def run_weather_query():
+    """Main function to handle weather queries recursively"""
 
-config = types.GenerateContentConfig(
-    tools=[get_geo_coordinates, get_weather_forecast]
-)
+    # Configure Gemini AI with tool functions
+    config = types.GenerateContentConfig(
+        tools = [get_geo_coordinates, get_weather_forecast]
+    )
 
-api_key = os.getenv('GOOGLE_API_KEY')
-client = genai.Client(api_key=api_key)
+    #set up Gemini client
+    api_key = os.getenv('GOOGLE_API_KEY')
+    if not api_key:
+        print("Error: GOOGLE_API_KEY environment variable not set.")
+        return
+    
+    client = genai.Client(api_key = api_key)
+
+    # Conversation history to maintain context
+    conversation_history = []
+
+    #Run the query loop
+
+    while True:
+        #Get user input
+        user_input = input("\nEnter your weather query (or 'exit' to quit): ")
+
+        #Check if user wants to exit
+        if user_input.lower() in ['exit','quit','q']:
+            print("Thank you for using the Weather assistant. Goodbye!")
+            break
+
+        # Add user query to conversation history
+        conversation_history.append(f"User: {user_input}")
+
+        # Create prompt with conversation context
+        current_date = datetime.now().isoformat()
+        prompt = f"""
+
+            You are a weather agent thatprovides weather forcasts for cities for the end user.
+
+            You should present the data in a human-readable format, adding emojis as you see fit.
+
+            Today's date is {current_date}
+
+            If they ask you what the weather is today, give them only for today
+
+            Previous conversation:
+            {' '.join(conversation_history[-5:]) if len(conversation_history) > 1 else 'No previous conversations. '}
+
+            Current query: {user_input}
+            """
+        
+        try:
+            #Generate response using Gemini
+            response = client.models.generate_content(
+                model = "gemini-2.0-flash",
+                config = config,
+                contents = prompt
+            )
+
+            # Display the response
+            print("\nWeather Assistant:", response.text)
+
+            # Add assistant response to conversation history
+            conversation_history.append(f"Assistant: {response.text}")
+
+        except Exception as e:
+            print(f"\nError occurred:{str(e)}")
+            print("Please try again with a different query.")
+
+if __name__ == "__main__":
+        print("Welcome to the Weather Assistant!")
+        print("You can ask questions about weather in any city.")
+        print("Type 'exit' at any time to quit.")
+        run_weather_query()
 
 
-input = input("Enter your weather query: ")
 
-response = client.models.generate_content(
-    model="gemini-2.0-flash",
-    config=config,
-    contents=f"""
-        You are a weather agent that provides weather forecasts for cities for the end user.
 
-        you should present the data in a human-readable format, adding emojis as you see fit.
 
-        If you don't understand the question, don't ask following questions, just assume what the user meant.
+    
 
-        When the user ask where it is the best weather. Prioritiez the high temperature, then sun, and low wind. Use all the data you are given and select the best place in Norway.
-
-        If the user doesnt give you a spesific date. asssume it is tomorrow
-        Todays date is {datetime.now().isoformat()}
+      
 
         
 
-        Query: {input}
-    """
-)
 
-print(response.text)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
