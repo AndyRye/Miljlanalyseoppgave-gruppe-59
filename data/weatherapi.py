@@ -226,7 +226,7 @@ class Weather_Plotting:
     def Scatterplott_Temperatur(self):
         fig, ax2 = plt.subplots(figsize=(7,5))
         
-        sns.scatterplot(x = "Tid", y= "Temperatur (C)", hue = "Temperatur (C)", pallette = "magma", data= self.df, ax = ax2)
+        sns.scatterplot(x = "Tid", y= "Temperatur (C)", hue = "Temperatur (C)", palette = "magma", data= self.df, ax = ax2)
         ax2.set_xlabel("tid")
         ax2.set_ylabel("Temperatur")
         ax2.set_title("Temperatur Over Tid")
@@ -273,7 +273,7 @@ class Weather_Plotting:
     def Plott_Korrelasjonsmatrise(self):
         #Visualiserer korrelasjon mellom alle numeriske varibaler
 
-        numeric_cols = self.df.select_dtypes(include=['floate64', 'int64']).columns
+        numeric_cols = self.df.select_dtypes(include=['float64', 'int64']).columns
         corr_matrix = self.df[numeric_cols].corr()
 
         plt.figure(figsize=(10,8))
@@ -291,7 +291,7 @@ class Weather_Plotting:
             numeric_cols = numeric_cols[:4]
 
         sns.pairplot(self.df[numeric_cols], height=2.5, diag_kind='kde')
-        plt.subtitle('Parvise relasjoner mellom Værvariabler', y=1.02)
+        plt.suptitle('Parvise relasjoner mellom Værvariabler', y=1.02)
         plt.tight_layout()
         plt.show()
 
