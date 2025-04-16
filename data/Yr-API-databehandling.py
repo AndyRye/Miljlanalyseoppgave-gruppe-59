@@ -87,12 +87,6 @@ try:
     print("\n Renset Værdata")
     print(df)
 
-    fig, ax1 = plt.subplots()
-    ax1.plot(df['Tid'],df['Temperatur (C)'])
-    ax1.set_xlabel('Tid')
-    ax1.set_ylabel('Tempratur (C)')
-    plt.show()
-
 
 
 except requests.exceptions.RequestException as e:

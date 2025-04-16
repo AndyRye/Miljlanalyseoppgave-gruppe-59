@@ -135,23 +135,29 @@ class Weather_Plotting:
         expeted_colum = ["Tid", "Temperatur (C)", "Vindhastighet (m/s)"]
         if not all(col in self.df.columns for col in expeted_colum):
             raise ValueError(f"Datasettet mangler påkrevde kolonner, forventet:{expeted_colum}")
-    
+        
+        #konverterer Tid til Datetime
+        self.df["Tid"] = pd.to_datetime(self.df["Tid"]) 
+
+
     def Plott_Temperatur(self):
         fig, ax1 = plt.subplots(figsize=(7,5))
-        sns.lineplot(x = "Tid",  y = "Temperatur (C)", hue = "Temperatur (C)", palette = "coolwarm", data = self.df, ax = ax1)
+        sns.lineplot(x = "Tid",  y = "Temperatur (C)", color = "blue", data = self.df, ax = ax1)
         ax1.set_xlabel("tid")
         ax1.set_ylabel("Temperatur")
         ax1.set_title("Temperatur Over Tid")
         ax1.grid(True)
+        plt.xticks(rotation = 30)
         plt.show()
 
     def Scatterplott_Temperatur(self):
         fig, ax2 = plt.subplots(figsize=(7,5))
         
-        sns.scatterplot(x = "Tid", y= "Temperatur (C)", hue = "Temperatur (C)", pallette = "magma", data= self.df, ax = ax2)
+        sns.scatterplot(x = "Tid", y= "Temperatur (C)", hue = "Temperatur (C)", palette = "coolwarm", data=self.df, ax = ax2)
         ax2.set_xlabel("tid")
         ax2.set_ylabel("Temperatur")
         ax2.set_title("Temperatur Over Tid")
+        plt.xticks(rotation = 30)
         plt.show()
 
     def Plott_Vindhastighet(self):
@@ -162,7 +168,39 @@ class Weather_Plotting:
         ax3.set_xlabel("Tid")
         ax3.set_ylabel("vindhastighet")
         ax3.legend(["Vindhastighet"])
+        plt.xticks(rotation = 30)
         plt.show()
+    def Plott_samtidig(self):
+        fig, (ax1, ax2, ax3)= plt.subplots(3, 1, figsize=(15,10))
+
+        sns.lineplot(x = "Tid",  y = "Temperatur (C)", color = "blue", data = self.df, ax = ax1)
+        ax1.set_xlabel("tid")
+        ax1.set_ylabel("Temperatur")
+        ax1.set_title("Temperatur Over Tid")
+        ax1.grid(True)
+        plt.xticks(rotation = 30)
+        
+
+        sns.scatterplot(x = "Tid", y= "Temperatur (C)", hue = "Temperatur (C)", palette = "coolwarm", data=self.df, ax = ax2)
+        ax2.set_xlabel("tid")
+        ax2.set_ylabel("Temperatur")
+        ax2.set_title("Temperatur Over Tid")
+        plt.xticks(rotation = 30)
+        
+
+        ax3.plot(self.df["Tid"], self.df["Vindhastighet (m/s)"], color = "blue")
+        ax3.set_title("Vindhastighet")
+        ax3.set_xlabel("Tid")
+        ax3.set_ylabel("vindhastighet")
+        ax3.legend(["Vindhastighet"])
+        plt.xticks(rotation = 30)
+        plt.show()
+
+
+
+
+
+
 
         
 
