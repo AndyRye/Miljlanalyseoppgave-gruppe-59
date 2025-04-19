@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import zscore
 from ipywidgets import interact
 
-class frostAPI:
+class FrostAPI:
     def __init__(self):
         self.client_id = "0933ff3e-f805-41e8-a90f-d13658c62567"
         self.client_secret = "06e27da9-90dd-4eec-aeb9-ca90fd6ef805"
@@ -81,8 +81,8 @@ class frostAPI:
         else:
             return pd.DataFrame()
         
-api = weatherAPI()
-df_periode = api.hent_data_for_periode("2020-01-01", "2024-12-31")
+api = FrostAPI()
+df_periode = api.hent_data_for_periode("2023-01-01", "2023-01-07")
 
 if not df_periode.empty:
     print(df_periode.head())
@@ -92,6 +92,7 @@ else:
 
 
 class DataAnalyse:
+    
     def __init__(self, data):
         self.data = data
 
@@ -104,15 +105,20 @@ class DataAnalyse:
             "gjennomsnitt": gjennomsnitt,
             "median": median, 
             "standard avvik": std_avvik
-        }
+        }   
     
     def undersok_sammenheng(self, kolonne1, kolonne2):
         korrealasjon  = self.data[[kolonne1, kolonne2]].corr()
         return korrealasjon
     
     def fjern_uteliggere(self, kolonne, z_score_threshold=3):
-        z_scores = np.abs(zscore(self.data[kolonne]))
-        self.data = self.data[z_scores < z_score_threshold]
+        while True: 
+            z_scores = np.abs(zscore(self.data[kolonne]))
+            ny_data = self.data[z_scores < z_score_threshold]
+
+            if len(ny_data) == len(self.data):
+                break
+            self.data = ny_data
 
     def plot_histogram(self,kolonne, filnavn="Visualisering.png"):
         if not self.data.empty:
