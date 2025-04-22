@@ -8,6 +8,7 @@ import seaborn as sns
 from scipy import stats
 
 
+
 class WeatherAPI:
     def __init__(self):
         #Url lenka til YR sin API
@@ -34,9 +35,9 @@ class WeatherAPI:
             self.data = response.json()
 
             #pretty print i terminal
-            print(json.dumps(self.data, indent=2)) #HVOR SKAL DENNE
+            print(json.dumps(self.data["properties"]["timeseries"][:1], indent=2)) 
 
-            self.validate()#HVA SKJER HER
+            self.validate()
 
         except requests.exceptions.RequestException as e:
             print(f"NB! Feil ved henting av API-data: {e}")
