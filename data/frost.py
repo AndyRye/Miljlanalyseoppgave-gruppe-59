@@ -6,6 +6,7 @@ from requests.auth import HTTPBasicAuth
 import numpy as np
 import matplotlib.pyplot as plt 
 from scipy.stats import zscore
+from scipy import stats  # Added missing import
 from ipywidgets import interact
 import plotly.graph_objects as go
 import os 
@@ -157,8 +158,8 @@ class DataAnalyse:
     
     def test_normalfordeling(self, kolonne):
 
-        shapiro_test = stats.sharpiro(self.data[kolonne].dropna())
-        return{
+        shapiro_test = stats.shapiro(self.data[kolonne].dropna())
+        return {
             'statistikk': shapiro_test[0],
             'p-verdi': shapiro_test[1],
             'er_normalfordelt': shapiro_test[1] > 0.05
@@ -240,10 +241,10 @@ class DataAnalyse:
             self.data[numeriske_kolonner].boxplot()
             plt.title('Boxplot av Værvariabler')
             plt.ylabel('Verdi')
-            plt.xtricks(rotation=45)
+            plt.xticks(rotation=45)
             plt.tight_layout()
             plt.savefig(filnavn)
-            plt.close
+            plt.close()
             print(f'Box plot lagret som {filnavn}')
         else:
             print('Ingen data tilgjenglig for plotting')
@@ -336,7 +337,7 @@ class DataAnalyse:
                 ax.set_xlabel('Tid')
                 ax.set_ylabel(kolonne)
                 ax.legend()
-                plt.xtricks(rotation=45)
+                plt.xticks(rotation=45)
                 plt.tight_layout()
                 plt.savefig(filnavn)
                 plt.close()
@@ -369,7 +370,7 @@ class DataAnalyse:
         if kolonne == "temperatur" and "Temperatur (C)" in yr_data.columns:
             yr_kolonne = "Temperatur (C)"
             
-        elif kolonne = "vind" and "Vindhastighet (m/s)" in yr_data.columns:
+        elif kolonne == "vind" and "Vindhastighet (m/s)" in yr_data.columns:
             yr_kolonne = "Vindhastighet (m/s)"
         
         plt.figure(figsize=(12,6))
@@ -381,7 +382,7 @@ class DataAnalyse:
         plt.ylabel(kolonne)
         plt.legend()
         plt.grid(True)
-        plt.xtricks(rotation=45)
+        plt.xticks(rotation=45)
         plt.tight_layout()
         plt.savefig(filnavn)
         plt.close()
@@ -400,8 +401,8 @@ class DataAnalyse:
         }
 
         print(f"\nStatistikk for {kolonne}:")
-        print(f"Frost (Historisk): Gjennomsnitt={frost_stats['gjennomsnitt']}, Median={frost_stats['median']}, Std.avvik={frost_stats["std_avvik"]}")
-        print(f"Yr (Prognose): Gjennomsnitt={yr_stats['gjennomsnitt']}, Median={yr_stats['median']}, Std.avvik={yr_stats["std_avvik"]}")
+        print(f"Frost (Historisk): Gjennomsnitt={frost_stats['Gjennomsnitt']}, Median={frost_stats['Median']}, Std.avvik={frost_stats['Std_avvik']}")
+        print(f"Yr (Prognose): Gjennomsnitt={yr_stats['Gjennomsnitt']}, Median={yr_stats['Median']}, Std.avvik={yr_stats['Std_avvik']}")
 
         return {
             "frost": frost_stats,
@@ -419,5 +420,5 @@ class DataAnalyse:
 
 
 
-     
+
 
