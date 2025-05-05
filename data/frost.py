@@ -24,13 +24,13 @@ class FrostAPI:
             "referencetime" : ""
            }
     
-    def hent_elementverdi(self, observations, element_id):
+    def fetch_elementvalue(self, observations, element_id):
         for o in observations:
             if o["elementId"] == element_id:
                 return o["value"]
         return None
 
-    def hent_data(self, startdato, sluttdato):
+    def fetch_data(self, startdato, sluttdato):
         self.params["referencetime"] = f"{startdato}/{sluttdato}"
 
         response = requests.get( 
@@ -49,9 +49,9 @@ class FrostAPI:
             lst.append({
                 "tidspunkt": obs["referenceTime"],
                 "stasjon": obs["sourceId"],
-                "temperatur": self.hent_elementverdi(obs["observations"], "air_temperature"),
-                "skydekke": self.hent_elementverdi(obs["observations"], "cloud_area_fraction"),
-                "vind": self.hent_elementverdi(obs["observations"], "wind_speed")
+                "temperatur": self.fetch_elementvalue(obs["observations"], "air_temperature"),
+                "skydekke": self.fetch_elementvalue(obs["observations"], "cloud_area_fraction"),
+                "vind": self.fetch_elementvalue(obs["observations"], "wind_speed")
             })
 
         df = pd.DataFrame(lst)
@@ -62,7 +62,7 @@ class FrostAPI:
 
         return df
     
-    def hent_data_for_periode(self, start_dato, sluttdato, intervall="W"):
+    def fetch_data_for_periode(self, start_dato, sluttdato, intervall="W"):
         start_date = pd.to_datetime(start_dato)
         end_date = pd.to_datetime(sluttdato)
 
@@ -81,7 +81,7 @@ class FrostAPI:
                 next_date = end_date
 
             print(f"Henter data fra {current_date.strftime('%Y-%m-%d')} til {next_date.strftime('%Y-%m-%d')}")
-            df = self.hent_data(current_date.strftime('%Y-%m-%d'), next_date.strftime('%Y-%m-%d'))
+            df = self.fetch_data(current_date.strftime('%Y-%m-%d'), next_date.strftime('%Y-%m-%d'))
             all_data.append(df)
             current_date = next_date
         
@@ -92,7 +92,7 @@ class FrostAPI:
             return pd.DataFrame()
         
 api = FrostAPI()
-df_periode = api.hent_data_for_periode("2023-01-01", "2023-01-07")
+df_periode = api.fetch_data_for_periode("2023-01-01", "2023-01-07")
 
 if not df_periode.empty:
     print(df_periode.head())
@@ -101,7 +101,7 @@ else:
     print("Ingen data funnet")
 
 
-class DataAnalyse:
+class DataAnalysis:
     
     def __init__(self, data):
         self.data = data
@@ -232,6 +232,10 @@ class DataAnalyse:
         else:
             print("ingen data tilgjenlig for plotting")
 
+        if kolonne not in self.data.columns:
+            print(f"kolonnen {kolonne} finnes ikke i datasettet")
+            return None
+
     def plot_box_plot(self, filnavn="Boxplot.png"): #Identifiserer utliggere
 
         if not self.data.empty:
@@ -241,6 +245,7 @@ class DataAnalyse:
             self.data[numeriske_kolonner].boxplot()
             plt.title('Boxplot av Værvariabler')
             plt.ylabel('Verdi')
+            plt.xticks(rotation=45)
             plt.xticks(rotation=45)
             plt.tight_layout()
             plt.savefig(filnavn)
@@ -258,7 +263,7 @@ class DataAnalyse:
             plt.figure(figsize=(10, 8))
             sns.heatmap(korrelasjon_matrise, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
             plt.title('Korrelasjonsmatrise av Værvariabler')
-            plt.tigth_layout()
+            plt.tight_layout()
             plt.savefig(filnavn)
             plt.close()
             print(f"Korrelasjonsmatrise lagret som {filnavn}")
@@ -268,7 +273,7 @@ class DataAnalyse:
     def plot_par_analyse(self, filnavn="Paranalyse.png"):
 
         if not self.data.empty:
-            numeriske_kolonner = self.data.select_dtypes(include=['float64', 'int64']).columns()
+            numeriske_kolonner = self.data.select_dtypes(include=['float64', 'int64']).columns
 
             if len(numeriske_kolonner) > 4:
                 numeriske_kolonner = numeriske_kolonner[:4]
@@ -282,8 +287,6 @@ class DataAnalyse:
         else:
             print("Ingen data tilgjenglig for plotting")
     
-
-
 
 
     def plot_tidserie(self, kolonne, filnavn="Interaktiv.html"):
@@ -338,6 +341,7 @@ class DataAnalyse:
                 ax.set_ylabel(kolonne)
                 ax.legend()
                 plt.xticks(rotation=45)
+                plt.xticks(rotation=45)
                 plt.tight_layout()
                 plt.savefig(filnavn)
                 plt.close()
@@ -371,6 +375,7 @@ class DataAnalyse:
             yr_kolonne = "Temperatur (C)"
             
         elif kolonne == "vind" and "Vindhastighet (m/s)" in yr_data.columns:
+        elif kolonne == "vind" and "Vindhastighet (m/s)" in yr_data.columns:
             yr_kolonne = "Vindhastighet (m/s)"
         
         plt.figure(figsize=(12,6))
@@ -382,6 +387,7 @@ class DataAnalyse:
         plt.ylabel(kolonne)
         plt.legend()
         plt.grid(True)
+        plt.xticks(rotation=45)
         plt.xticks(rotation=45)
         plt.tight_layout()
         plt.savefig(filnavn)
