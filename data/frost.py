@@ -23,13 +23,13 @@ class FrostAPI:
             "referencetime" : ""
            }
     
-    def hent_elementverdi(self, observations, element_id):
+    def fetch_elementvalue(self, observations, element_id):
         for o in observations:
             if o["elementId"] == element_id:
                 return o["value"]
         return None
 
-    def hent_data(self, startdato, sluttdato):
+    def fetch_data(self, startdato, sluttdato):
         self.params["referencetime"] = f"{startdato}/{sluttdato}"
 
         response = requests.get( 
@@ -48,9 +48,9 @@ class FrostAPI:
             lst.append({
                 "tidspunkt": obs["referenceTime"],
                 "stasjon": obs["sourceId"],
-                "temperatur": self.hent_elementverdi(obs["observations"], "air_temperature"),
-                "skydekke": self.hent_elementverdi(obs["observations"], "cloud_area_fraction"),
-                "vind": self.hent_elementverdi(obs["observations"], "wind_speed")
+                "temperatur": self.fetch_elementvalue(obs["observations"], "air_temperature"),
+                "skydekke": self.fetch_elementvalue(obs["observations"], "cloud_area_fraction"),
+                "vind": self.fetch_elementvalue(obs["observations"], "wind_speed")
             })
 
         df = pd.DataFrame(lst)
@@ -61,7 +61,7 @@ class FrostAPI:
 
         return df
     
-    def hent_data_for_periode(self, start_dato, sluttdato, intervall="W"):
+    def fetch_data_for_periode(self, start_dato, sluttdato, intervall="W"):
         start_date = pd.to_datetime(start_dato)
         end_date = pd.to_datetime(sluttdato)
 
@@ -80,7 +80,7 @@ class FrostAPI:
                 next_date = end_date
 
             print(f"Henter data fra {current_date.strftime('%Y-%m-%d')} til {next_date.strftime('%Y-%m-%d')}")
-            df = self.hent_data(current_date.strftime('%Y-%m-%d'), next_date.strftime('%Y-%m-%d'))
+            df = self.fetch_data(current_date.strftime('%Y-%m-%d'), next_date.strftime('%Y-%m-%d'))
             all_data.append(df)
             current_date = next_date
         
@@ -91,7 +91,7 @@ class FrostAPI:
             return pd.DataFrame()
         
 api = FrostAPI()
-df_periode = api.hent_data_for_periode("2023-01-01", "2023-01-07")
+df_periode = api.fetch_data_for_periode("2023-01-01", "2023-01-07")
 
 if not df_periode.empty:
     print(df_periode.head())
@@ -100,7 +100,7 @@ else:
     print("Ingen data funnet")
 
 
-class DataAnalyse:
+class DataAnalysis:
     
     def __init__(self, data):
         self.data = data
