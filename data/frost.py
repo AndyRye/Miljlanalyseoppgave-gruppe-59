@@ -5,7 +5,7 @@ from datetime import datetime
 from requests.auth import HTTPBasicAuth
 import numpy as np
 import matplotlib.pyplot as plt 
-from scipy.stats import zscore
+from scipy import stats
 from ipywidgets import interact
 import plotly.graph_objects as go
 import os 
@@ -157,7 +157,7 @@ class DataAnalyse:
     
     def test_normalfordeling(self, kolonne):
 
-        shapiro_test = stats.sharpiro(self.data[kolonne].dropna())
+        shapiro_test = stats.shapiro(self.data[kolonne].dropna())
         return{
             'statistikk': shapiro_test[0],
             'p-verdi': shapiro_test[1],
@@ -231,6 +231,10 @@ class DataAnalyse:
         else:
             print("ingen data tilgjenlig for plotting")
 
+        if kolonne not in self.data.columns:
+            print(f"kolonnen {kolonne} finnes ikke i datasettet")
+            return None
+
     def plot_box_plot(self, filnavn="Boxplot.png"): #Identifiserer utliggere
 
         if not self.data.empty:
@@ -240,7 +244,7 @@ class DataAnalyse:
             self.data[numeriske_kolonner].boxplot()
             plt.title('Boxplot av Værvariabler')
             plt.ylabel('Verdi')
-            plt.xtricks(rotation=45)
+            plt.xticks(rotation=45)
             plt.tight_layout()
             plt.savefig(filnavn)
             plt.close
@@ -257,7 +261,7 @@ class DataAnalyse:
             plt.figure(figsize=(10, 8))
             sns.heatmap(korrelasjon_matrise, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
             plt.title('Korrelasjonsmatrise av Værvariabler')
-            plt.tigth_layout()
+            plt.tight_layout()
             plt.savefig(filnavn)
             plt.close()
             print(f"Korrelasjonsmatrise lagret som {filnavn}")
@@ -267,7 +271,7 @@ class DataAnalyse:
     def plot_par_analyse(self, filnavn="Paranalyse.png"):
 
         if not self.data.empty:
-            numeriske_kolonner = self.data.select_dtypes(include=['float64', 'int64']).columns()
+            numeriske_kolonner = self.data.select_dtypes(include=['float64', 'int64']).columns
 
             if len(numeriske_kolonner) > 4:
                 numeriske_kolonner = numeriske_kolonner[:4]
@@ -281,8 +285,6 @@ class DataAnalyse:
         else:
             print("Ingen data tilgjenglig for plotting")
     
-
-
 
 
     def plot_tidserie(self, kolonne, filnavn="Interaktiv.html"):
@@ -336,7 +338,7 @@ class DataAnalyse:
                 ax.set_xlabel('Tid')
                 ax.set_ylabel(kolonne)
                 ax.legend()
-                plt.xtricks(rotation=45)
+                plt.xticks(rotation=45)
                 plt.tight_layout()
                 plt.savefig(filnavn)
                 plt.close()
@@ -369,7 +371,7 @@ class DataAnalyse:
         if kolonne == "temperatur" and "Temperatur (C)" in yr_data.columns:
             yr_kolonne = "Temperatur (C)"
             
-        elif kolonne = "vind" and "Vindhastighet (m/s)" in yr_data.columns:
+        elif kolonne == "vind" and "Vindhastighet (m/s)" in yr_data.columns:
             yr_kolonne = "Vindhastighet (m/s)"
         
         plt.figure(figsize=(12,6))
@@ -381,7 +383,7 @@ class DataAnalyse:
         plt.ylabel(kolonne)
         plt.legend()
         plt.grid(True)
-        plt.xtricks(rotation=45)
+        plt.xticks(rotation=45)
         plt.tight_layout()
         plt.savefig(filnavn)
         plt.close()
