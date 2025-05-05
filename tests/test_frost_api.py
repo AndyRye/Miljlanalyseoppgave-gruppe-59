@@ -1,69 +1,81 @@
+"""
+Unit test for the FrostAPI
+"""
 import unittest
+from unittest.mock import patch, MagicMock
 from datetime import datetime 
-import sys, os
-import numpy as np
+import sys
+import os
+import json 
+from datetime import datetime
+import requests 
+
  
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data')))
-print(sys.path)
 
-from frostapi import FrostAPI, DataAnalyse 
+from data.frost import FrostAPI
 
-class TestDataAnalyseWithRealAPI(unittest.TestCase):
-
+class TestFrostAPI(unittest.TestCase):
+    """
+    Test cases for the frostAPI class
+    """
     def setUp(self):
         self.api = FrostAPI()
-        self.df = self.api.hent_data("2023-01-01", "2023-01-07")
+        self.sample_observations = [
+            {"elementId": "air_temperature", "value": 3.2},
+            {"elementId": "wind_speed", "value": 5.1}
+        ]
 
-        #sjekker at data er blitt hentet
-        if self.df.empty:
-            raise ValueError("Ingen data hentet fra frostAPItesten.")
-        self.analyse = DataAnalyse(self.df)
 
-    def test_beregn_statistikk_temperatur(self):
-        stats = self.analyse.beregn_statistikk("temperatur")
+    def test_fetch_elementvalue(self):
+        """
+        Test that fetch_elementvalue correctly fetches values from a list
+        """
+        self.assertEqual(self.api.fetch_elementvalue(self.sample_observations, "air_temperature"), 3.2)
+        self.assertIsNone(self.api.fetch_elementvalue(self.sample_observations, "cloud_area_fraction"))
 
-        print("Statistikk:", stats)
 
-        #sjekker at alle verdier er en float og at de er innenfor forventet intervall
-        self.assertIsInstance(stats["gjennomsnitt"], float)
-        self.assertIsInstance(stats["median"], float)
-        self.assertIsInstance(stats["standard avvik"], float)
+    @patch("requests.get")
+    def test_fetch_data(self, mock_get):
+        """
+        Tests that fetch_data returns a data frame with correct columns and values
+        """
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "data": [
+                {
+                    "referenceTime": "2023-01-01T00:00:00Z",
+                    "sourceId": "SN18700",
+                    "observations": self.sample_observations
+                }
+            ]
+        }
+        df = self.api.fetch_data("2023-01-01", "2023-01-02")
+        mock_get.return_value = mock_response
+        self.assertFalse(df.empty)
+        self.assertIn("temperatur", df.columns)
+        self.assertEqual(df.iloc[0]["temperatur"], 3.2)
 
-        self.assertGreater(stats["gjennomsnitt"], -50)
-        self.assertLess(stats["gjennomsnitt"], 50)
+    @patch("requests.get") 
+    def test_data_fetch_empty(self, mock_get):
+        """
+        Tests that fetch_data returns an empty pandas data frame if FrostAPI responds with an empty dataframe error
+        """
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"data": []}
+        mock_get.return_value = mock_response
 
-    """ def test_fjern_uteliggere_temperatur(self):
-        før_rader = len(self.analyse.data)
-        print("Antall rader før fjerning:", før_rader)
+        df = self.api.fetch_data("2023-01-01", "2023-01-02")
+        self.assertTrue(df.empty)
 
-        self.analyse.fjern_uteliggere("temperatur", z_score_threshold=2)
-        etter_rader = len(self.analyse.data)
-        print("Antall rader etter fjerning:", etter_rader)
-
-        self.assertLessEqual(etter_rader, før_rader)
-
-        z_score =  abs((self.analyse.data["temperatur"] - self.analyse.data["temperatur"].mean()) / 
-                    self.analyse.data["temperatur"].std())
-        self.assertTrue((z_score <= 2).all(), "Noen uteliggere er fortsatt igjen")"""
-
-    def test_fjern_uteliggere_temperatur(self):
-        før_rader = len(self.analyse.data)
-        print("Antall rader før fjerning:", før_rader)
-
-        self.analyse.fjern_uteliggere("temperatur", z_score_threshold=2)
-        etter_rader = len(self.analyse.data)
-        print("Antall rader etter fjerning:", etter_rader)
-
-        self.assertLessEqual(etter_rader, før_rader)
-
-        # ⚠️ Her må vi bruke Z-score beregnet på det filtrerte datasettet
-        temperaturverdier = self.analyse.data["temperatur"]
-        z_scores = np.abs((temperaturverdier - temperaturverdier.mean()) / temperaturverdier.std())
-
-        print("Maksimal z-score etter fjerning:", z_scores.max())  # Debug
-
-        self.assertTrue((z_scores <= 2).all(), "Noen uteliggere er fortsatt igjen")
-
+    def test_fetch_data_for_periode_invalid_intervall(self):
+        """
+        Negative test that tests that it casts a ValueError with an invalid input
+        """
+        with self.assertRaises(ValueError):
+            self.api.fetch_data_for_periode("2023-01-01", "2023-01-03", intervall="X")
     
 if __name__ == "__main__":
     unittest.main()
