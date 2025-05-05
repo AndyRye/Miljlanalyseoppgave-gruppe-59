@@ -7,7 +7,7 @@ import sys
 import os
 
 # Import our custom modules
-from frost import FrostAPI
+from data_collection.frost import FrostAPI
 st.set_page_config(
     layout="wide",
     page_title="Væranalyse"
