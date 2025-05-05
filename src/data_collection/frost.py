@@ -30,7 +30,8 @@ class FrostAPI:
                 'air_pressure_at_sea_level',
                 'precipitation_amount'
             ], 
-            "referencetime": ""
+            "referencetime": "",
+            "timeresolutions": "PT1H"
         }
     
     def handle_missing_data(self, df):
