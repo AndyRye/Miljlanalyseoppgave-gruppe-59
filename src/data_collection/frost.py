@@ -6,7 +6,7 @@ from requests.auth import HTTPBasicAuth
 import numpy as np
 import matplotlib.pyplot as plt 
 from scipy.stats import zscore
-from scipy import stats  # Added missing import
+from scipy import stats  
 from ipywidgets import interact
 import plotly.graph_objects as go
 import os 
@@ -21,16 +21,11 @@ class FrostAPI:
         self.params = {
             
             "sources": 'SN18700,SN90450,SN50539,SN69100', 
-            
-            "elements": [
-                'air_temperature',
-                'cloud_area_fraction', 
-                'wind_speed',
-                'relative_humidity',
-                'air_pressure_at_sea_level',
-                'precipitation_amount'
-            ], 
-            "referencetime": ""
+            "elements": ','.join([
+                "air_temperature","cloud_area_fraction","wind_speed"
+            ]),
+            "timeresolutions": 'PT1H',
+            "referencetime": ''
         }
     
     def handle_missing_data(self, df):
@@ -64,36 +59,30 @@ class FrostAPI:
                 return o["value"]
         return None
 
-    def hent_data(self, startdato, sluttdato):
-        self.params["referencetime"] = f"{startdato}/{sluttdato}"
+    def hent_data(self, start, slutt):
+        self.params["referencetime"] = f"{start}/{slutt}"
+        r = requests.get(self.endpoint, params=self.params,
+                         auth=(self.client_id, ""))
+        r.raise_for_status()
+        rows = {}
+        for item in r.json().get("data", []):
+            k = (item["referenceTime"], item["sourceId"])
+            rows.setdefault(k, {"tidspunkt": item["referenceTime"],
+                                "stasjon": item["sourceId"],
+                                "temperatur": None,
+                                "skydekke": None,
+                                "vind": None})
+            for o in item["observations"]:
+                eid = o["elementId"]
+                if eid == "air_temperature":
+                    rows[k]["temperatur"] = o["value"]
+                elif eid == "cloud_area_fraction":
+                    rows[k]["skydekke"] = o["value"]
+                elif eid == "wind_speed":
+                    rows[k]["vind"] = o["value"]
 
-        response = requests.get( 
-            self.endpoint,
-            params = self.params,
-            auth = HTTPBasicAuth(self.client_id, self.client_secret)
-        )
-        
-        if response.status_code != 200:
-            raise Exception(f"Feil med forespørsel: {response.status_code} \n {response.text}")
-        
-        data = response.json().get("data", [])
-
-        lst = []
-        for obs in data:
-            lst.append({
-                "tidspunkt": obs["referenceTime"],
-                "stasjon": obs["sourceId"],
-                "temperatur": self.hent_elementverdi(obs["observations"], "air_temperature"),
-                "skydekke": self.hent_elementverdi(obs["observations"], "cloud_area_fraction"),
-                "vind": self.hent_elementverdi(obs["observations"], "wind_speed")
-            })
-
-        df = pd.DataFrame(lst)
-
-        if not df.empty:
-            df["tidspunkt"] = pd.to_datetime(df["tidspunkt"])
-            df.set_index("tidspunkt", inplace=True)
-
+        df = pd.DataFrame(rows.values()).set_index(
+                 pd.to_datetime(pd.Series([r["tidspunkt"] for r in rows.values()])))
         return df
     
     def hent_data_for_periode(self, start_dato, sluttdato, intervall="W"):
@@ -107,7 +96,7 @@ class FrostAPI:
             if intervall == "W":
                 next_date = current_date + pd.DateOffset(weeks=1)
             elif intervall == "M":
-                next_date = current_date + pd.DateOffset(month=1)
+                next_date = current_date + pd.DateOffset(months=1)
             else:
                 raise ValueError("Ugyldig. Bruk 'W' for ukentlig eller 'M' for måndelig")
             
@@ -121,14 +110,26 @@ class FrostAPI:
         
         if all_data:
             full_df = pd.concat(all_data)
-         
+
+            full_df = full_df.reset_index()
+
+            if "tidspunkt" in full_df.columns:
+                full_df = full_df.drop(columns=["tidspunkt"])
+
+            full_df = full_df.rename(columns={"index": "tidspunkt"})
+
+            full_df = full_df.drop_duplicates(subset=["tidspunkt", "stasjon"], keep="first")
+
+            full_df["tidspunkt"] = pd.to_datetime(full_df["tidspunkt"])
+            full_df = full_df.set_index("tidspunkt").sort_index()
+
             full_df = self.handle_missing_data(full_df)
             return full_df
         else:
             return pd.DataFrame()
         
 api = FrostAPI()
-df_periode = api.hent_data_for_periode("2023-01-01", "2023-01-07")
+df_periode = api.hent_data_for_periode("2023-01-01", "2024-01-07")
 
 if not df_periode.empty:
     print(df_periode.head())
