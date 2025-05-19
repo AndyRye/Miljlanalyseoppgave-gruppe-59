@@ -327,35 +327,33 @@ class DataAnalyse:
             "frost": frost_stats,
             "yr": yr_stats
         }
+if __name__ == "__main__":
+    api = FrostAPI()
+    df_periode = api.hent_data_for_periode("2023-01-01", "2023-02-01")
 
-api = FrostAPI()
-df_periode = api.hent_data_for_periode("2023-01-01", "2023-02-01")
+    if not df_periode.empty:
+        print(df_periode.head())
+        print(df_periode.describe())
 
-if not df_periode.empty:
-    print(df_periode.head())
-    print(df_periode.describe())
-    
-    
-    analyzer = DataAnalyse(df_periode)
-    
-  
-    print("\nStatistical measures:")
-    stats = analyzer.beregn_alle_statistikker()
-    print(stats)
-    
-   
-    print("\nCorrelation analysis:")
-    corr = analyzer.analyser_korrelasjon()
-    print(corr)
-    
-   
-    analyzer.plot_histogram("temperatur")
-    analyzer.plot_box_plot()
-    analyzer.plot_korrelasjonsmatrise()  # Make sure to fix the typo in this method
-    analyzer.plot_tidserie("temperatur")
-    analyzer.plot_tidsserie_med_statistikk("temperatur")
-else:
-    print("Ingen data funnet")
+
+        analyzer = DataAnalyse(df_periode)
+
+        print("\nStatistical measures:")
+        stats = analyzer.beregn_alle_statistikker()
+        print(stats)
+
+        print("\nCorrelation analysis:")
+        corr = analyzer.analyser_korrelasjon()
+        print(corr)
+
+
+        analyzer.plot_histogram("temperatur")
+        analyzer.plot_box_plot()
+        analyzer.plot_korrelasjonsmatrise()  # Make sure to fix the typo in this method
+        analyzer.plot_tidserie("temperatur")
+        analyzer.plot_tidsserie_med_statistikk("temperatur")
+    else:
+        print("Ingen data funnet")
 
 
 print("DataAnalyse class defined successfully")
