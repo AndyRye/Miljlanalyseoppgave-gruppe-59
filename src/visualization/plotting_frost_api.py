@@ -16,128 +16,20 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from data_collection.frost import FrostAPI
+from src.data_collection.frost import FrostAPI
+from src.analysis.data_analysis import DataAnalyse
 
+class DataPlotting: 
 
-class DataAnalyse:
-    
     def __init__(self, data):
         self.data = data
-
-    def beregn_statistikk(self, kolonne):
-        gjennomsnitt = round(float(np.mean(self.data[kolonne])), 2)
-        median = round(float(np.median(self.data[kolonne])), 2)
-        std_avvik = round(float(np.std(self.data[kolonne])), 2)
-        min_verdi = round(float(np.min(self.data[kolonne])), 2)
-        max_verdi = round(float(np.max(self.data[kolonne])), 2)
-        skjevhet = round(float(stats.skew(self.data[kolonne].dropna())), 2)
-        kurtose = round(float(stats.kurtosis(self.data[kolonne].dropna())), 2)
-
-        return {
-            "gjennomsnitt": gjennomsnitt,
-            "median": median, 
-            "standard avvik": std_avvik,
-            "minimum": min_verdi,
-            "maksimum": max_verdi,
-            "skjevhet": skjevhet,
-            "kurtose": kurtose
-
-        }   
-    
-    def beregn_alle_statistikker(self):
-        numeriske_kolonner = self.data.select_dtypes(include=['float64', 'int64']).columns
-
-        stats_df = pd.DataFrame(index=['Gjennomsnitt', 'Median', 'Standardavvik', 'Min', 'Max', 'Skjevhet', 'Kurtose'])
-
-        for kolonne in numeriske_kolonner:
-            stats = self.beregn_statistikk(kolonne)
-            stats_df[kolonne] = [
-                stats["gjennomsnitt"],
-                stats["median"],
-                stats["standard avvik"],
-                stats["minimum"],
-                stats["maksimum"],
-                stats["skjevhet"],
-                stats["kurtose"],
-            ]
-        
-        return stats_df
-    
-    
-    def undersok_sammenheng(self, kolonne1, kolonne2):
-        
-        korrealasjon  = self.data[[kolonne1, kolonne2]].corr().iloc[0, 1]
-        return round(korrealasjon, 2)
-    
-    def analyser_korrelasjon(self):
-
-        numeriske_kolonner = self.data.select_dtypes(include=['float64', 'int64']).columns
-        korrelasjon_matrise = self.data[numeriske_kolonner].corr()
-        return korrelasjon_matrise
-    
-    def test_normalfordeling(self, kolonne):
-
-        shapiro_test = stats.shapiro(self.data[kolonne].dropna())
-        return {
-            'statistikk': shapiro_test[0],
-            'p-verdi': shapiro_test[1],
-            'er_normalfordelt': shapiro_test[1] > 0.05
-        }
-    
-
-    def fjern_uteliggere(self, kolonne, z_score_threshold=3):
-        
-        while True: 
-            z_scores = np.abs(zscore(self.data[kolonne]))
-            ny_data = self.data[z_scores < z_score_threshold]
-
-            if len(ny_data) == len(self.data):
-                break
-            self.data = ny_data
-        
-        return self.data
-    
-    def haanterer_skjevhet(self, kolonne):
-
-        originale_data = self.data[kolonne]
-        skjevhet = originale_data.skew()
-
-        if skjevhet > 1 and originale_data.min() >= 0:
-            #En Logaritmisk transformasjon for positiv skjevhet
-            transformerte_data = np.log1p(originale_data)
-            return{
-                'original': originale_data,
-                'transformert': transformerte_data,
-                'transformasjonstype': 'Log',
-                'original_skjevhet': skjevhet,
-                'transformert_skjevhet': transformerte_data.skew()
-            }
-        elif skjevhet < -1:
-            #En eksponensiell transformasjon for negativ skjevhet
-            transformerte_data = np.exp(originale_data/ originale_data.max())
-            return{
-                'original': originale_data,
-                'transformert': transformerte_data,
-                'transformasjonstype': 'Eksponensiell',
-                'original_skjevhet': skjevhet,
-                'transformert_skjevhet': transformerte_data.skew()
-            }
-        else:
-            #Ingen transformasjon nødvendig
-            return{
-                'original': originale_data,
-                'transformert': originale_data,
-                'transformasjonstype': 'Ingen',
-                'original_skjevhet': skjevhet,
-                'transformert_skjevhet': skjevhet
-            }
 
     def plot_histogram(self,kolonne, filnavn="Visualisering.png"):
 
         if not self.data.empty:
             plt.figure(figsize=(8, 6))
             sns.histplot(self.data[kolonne], kde=True, color='skyblue', edgecolor='black')
-            plt.axvline(self.data[kolonne].mean(), color='red',linestyle='--', label=f'Gjennomsnitt:{self.data[kolonne].mean():.2f}')
+            plt.axvline(self.data[kolonne].mean(), color='red',linestyle='--', label=f'mean:{self.data[kolonne].mean():.2f}')
             plt.axvline(self.data[kolonne].median(), color='green',linestyle='-.', label=f'Median:{self.data[kolonne].median():.2f}')
 
             plt.title(f"Histogram for {kolonne}")
@@ -154,10 +46,10 @@ class DataAnalyse:
     def plot_box_plot(self, filnavn="Boxplot.png"): #Identifiserer utliggere
 
         if not self.data.empty:
-            numeriske_kolonner = self.data.select_dtypes(include=['float64', 'int64']).columns
+            numerical_columns = self.data.select_dtypes(include=['float64', 'int64']).columns
 
             plt.figure(figsize=(12, 8))
-            self.data[numeriske_kolonner].boxplot()
+            self.data[numerical_columns].boxplot()
             plt.title('Boxplot av Værvariabler')
             plt.ylabel('Verdi')
             plt.xticks(rotation=45)
@@ -171,8 +63,8 @@ class DataAnalyse:
     def plot_korrelasjonsmatrise(self, filnavn= "Korrelasjonsmatrise.png"):
 
         if not self.data.empty:
-            numeriske_kolonner = self.data.select_dtypes(include=['float64', 'int64']).columns
-            korrelasjon_matrise = self.data[numeriske_kolonner].corr()
+            numerical_columns = self.data.select_dtypes(include=['float64', 'int64']).columns
+            korrelasjon_matrise = self.data[numerical_columns].corr()
 
             plt.figure(figsize=(10, 8))
             sns.heatmap(korrelasjon_matrise, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
@@ -187,12 +79,12 @@ class DataAnalyse:
     def plot_par_analyse(self, filnavn="Paranalyse.png"):
 
         if not self.data.empty:
-            numeriske_kolonner = self.data.select_dtypes(include=['float64', 'int64']).columns
+            numerical_columns = self.data.select_dtypes(include=['float64', 'int64']).columns
 
-            if len(numeriske_kolonner) > 4:
-                numeriske_kolonner = numeriske_kolonner[:4]
+            if len(numerical_columns) > 4:
+                numerical_columns = numerical_columns[:4]
 
-            pair_grid = sns.pairplot(self.data[numeriske_kolonner], height=2.5, diag_kind='kde')
+            pair_grid = sns.pairplot(self.data[numerical_columns], height=2.5, diag_kind='kde')
             pair_grid.fig.suptitle('Parvise relasjoner mellom værvariablene', y=1.02)
             plt.tight_layout()
             plt.savefig(filnavn)
@@ -249,7 +141,7 @@ class DataAnalyse:
                 rolling_mean = self.data[kolonne].rolling(window=3, min_periods=1).mean()
                 rolling_std = self.data[kolonne].rolling(window=3, min_periods=1).std()
 
-                ax.plot(self.data.index, rolling_mean, 'r--', label='Glidende gjennomsnitt (3 punkter)')
+                ax.plot(self.data.index, rolling_mean, 'r--', label='Glidende mean (3 punkter)')
                 ax.fill_between(self.data.index, rolling_mean - rolling_std, rolling_mean + rolling_std, color='r', alpha=0.2, label='±1 standardavvik')
 
                 ax.set_title(f'Tidsserie av {kolonne} med statistiske mål')
@@ -286,11 +178,11 @@ class DataAnalyse:
         #Tilpasser kolonnene for sammenligning
         frost_kolonne = kolonne
         yr_kolonne= kolonne
-        if kolonne == "temperatur" and "Temperatur (C)" in yr_data.columns:
-            yr_kolonne = "Temperatur (C)"
+        if kolonne == "temperature" and "temperature (C)" in yr_data.columns:
+            yr_kolonne = "temperature (C)"
             
-        elif kolonne == "vind" and "Vindhastighet (m/s)" in yr_data.columns:
-            yr_kolonne = "Vindhastighet (m/s)"
+        elif kolonne == "wind_speed" and "Windspeed (m/s)" in yr_data.columns:
+            yr_kolonne = "Windspeed (m/s)"
         
         plt.figure(figsize=(12,6))
         plt.plot(frost_data.index, frost_data[frost_kolonne], 'b-', label='Frost(historisk)')
@@ -308,20 +200,20 @@ class DataAnalyse:
         print(f"Sammenligning lagret som {filnavn}")
 
         frost_stats = {
-            "Gjennomsnitt": round(float(np.mean(frost_data[frost_kolonne])), 2),
+            "mean": round(float(np.mean(frost_data[frost_kolonne])), 2),
             "Median": round(float(np.median(frost_data[frost_kolonne])), 2),
-            "Std_avvik": round(float(np.std(frost_data[frost_kolonne])), 2)
+            "std_dev": round(float(np.std(frost_data[frost_kolonne])), 2)
         }
 
         yr_stats = {
-            "Gjennomsnitt": round(float(np.mean(yr_data[yr_kolonne])), 2),
+            "mean": round(float(np.mean(yr_data[yr_kolonne])), 2),
             "Median": round(float(np.median(yr_data[yr_kolonne])), 2),
-            "Std_avvik": round(float(np.std(yr_data[yr_kolonne])), 2)
+            "std_dev": round(float(np.std(yr_data[yr_kolonne])), 2)
         }
 
         print(f"\nStatistikk for {kolonne}:")
-        print(f"Frost (Historisk): Gjennomsnitt={frost_stats['Gjennomsnitt']}, Median={frost_stats['Median']}, Std.avvik={frost_stats['Std_avvik']}")
-        print(f"Yr (Prognose): Gjennomsnitt={yr_stats['Gjennomsnitt']}, Median={yr_stats['Median']}, Std.avvik={yr_stats['Std_avvik']}")
+        print(f"Frost (Historisk): mean={frost_stats['mean']}, Median={frost_stats['Median']}, Std.avvik={frost_stats['std_dev']}")
+        print(f"Yr (Prognose): mean={yr_stats['mean']}, Median={yr_stats['Median']}, Std.avvik={yr_stats['std_dev']}")
 
         return {
             "frost": frost_stats,
@@ -329,7 +221,7 @@ class DataAnalyse:
         }
 
 api = FrostAPI()
-df_periode = api.hent_data_for_periode("2023-01-01", "2023-02-01")
+df_periode = api.fetch_data_for_periode("2023-01-01", "2023-02-01")
 
 if not df_periode.empty:
     print(df_periode.head())
@@ -345,23 +237,32 @@ if not df_periode.empty:
     
    
     print("\nCorrelation analysis:")
-    corr = analyzer.analyser_korrelasjon()
+    corr = analyzer.analyse_correlastion()
     print(corr)
     
    
-    analyzer.plot_histogram("temperatur")
+    analyzer.plot_histogram("temperature")
     analyzer.plot_box_plot()
     analyzer.plot_korrelasjonsmatrise()  # Make sure to fix the typo in this method
-    analyzer.plot_tidserie("temperatur")
-    analyzer.plot_tidsserie_med_statistikk("temperatur")
+    analyzer.plot_tidserie("temperature")
+    analyzer.plot_tidsserie_med_statistikk("temperature")
 else:
     print("Ingen data funnet")
 
 
 print("DataAnalyse class defined successfully")
-test_data = pd.DataFrame({'temperatur': [1, 2, 3]})
+test_data = pd.DataFrame({'temperature': [1, 2, 3]})
 test_analyzer = DataAnalyse(test_data)
 print("DataAnalyse object created successfully")
+
+
+
+
+
+
+
+
+
 
 
 
