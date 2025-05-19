@@ -6,6 +6,8 @@ from scipy.stats import zscore, stats
 import plotly.graph_objects as go
 import os
 import webbrowser
+from data.fFrost import FrostAPI
+
 
 api = FrostAPI()
 df_frost = api.hent_data_for_periode("2023-01-01","2023-01-31", intervall ="W")
