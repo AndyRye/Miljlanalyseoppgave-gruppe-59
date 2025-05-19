@@ -51,8 +51,8 @@ class TestFrostAPI(unittest.TestCase):
                 }
             ]
         }
-        df = self.api.fetch_data("2023-01-01", "2023-01-02")
         mock_get.return_value = mock_response
+        df = self.api.fetch_data("2023-01-01", "2023-01-02")
         self.assertFalse(df.empty)
         self.assertIn("temperatur", df.columns)
         self.assertEqual(df.iloc[0]["temperatur"], 3.2)

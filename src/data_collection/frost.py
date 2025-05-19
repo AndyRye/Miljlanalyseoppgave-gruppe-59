@@ -105,7 +105,7 @@ class FrostAPI:
                 next_date = end_date
 
             print(f"Henter data fra {current_date.strftime('%Y-%m-%d')} til {next_date.strftime('%Y-%m-%d')}")
-            df = self.hent_data(current_date.strftime('%Y-%m-%d'), next_date.strftime('%Y-%m-%d'))
+            df = self.fetch_data(current_date.strftime('%Y-%m-%d'), next_date.strftime('%Y-%m-%d'))
             all_data.append(df)
             current_date = next_date
         
