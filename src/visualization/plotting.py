@@ -22,6 +22,7 @@ from data_collection.frost import FrostAPI
 class DataAnalyse:
     
     def __init__(self, data):
+        data = data[~data.index.duplicated(keep='first')]
         self.data = data
 
     def beregn_statistikk(self, kolonne):
