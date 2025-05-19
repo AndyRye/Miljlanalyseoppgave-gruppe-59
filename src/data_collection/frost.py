@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 import os 
 import webbrowser
 import seaborn as sns
+import numpy as np
 
 class FrostAPI:
     def __init__(self):
@@ -44,22 +45,22 @@ class FrostAPI:
             for col in ['temperatur', 'skydekke', 'vind']:
                 if col in station_data.columns:
                     # First try forward fill
-                    station_data[col] = station_data[col].ffill()
+                    station_data.loc[:, col] = station_data[col].ffill()
                     # Then try backward fill for any remaining NaNs
-                    station_data[col] = station_data[col].bfill()
+                    station_data.loc[:, col] = station_data[col].bfill()
                 
             
             df_filled.loc[df_filled['stasjon'] == station] = station_data
     
         return df_filled
     
-    def hent_elementverdi(self, observations, element_id):
+    def fetch_elementvalue(self, observations, element_id):
         for o in observations:
             if o["elementId"] == element_id:
                 return o["value"]
         return None
 
-    def hent_data(self, start, slutt):
+    def fetch_data(self, start, slutt):
         self.params["referencetime"] = f"{start}/{slutt}"
         r = requests.get(self.endpoint, params=self.params,
                          auth=(self.client_id, ""))
@@ -85,7 +86,7 @@ class FrostAPI:
                  pd.to_datetime(pd.Series([r["tidspunkt"] for r in rows.values()])))
         return df
     
-    def hent_data_for_periode(self, start_dato, sluttdato, intervall="W"):
+    def fetch_data_for_periode(self, start_dato, sluttdato, intervall="W"):
         start_date = pd.to_datetime(start_dato)
         end_date = pd.to_datetime(sluttdato)
 
@@ -129,7 +130,7 @@ class FrostAPI:
             return pd.DataFrame()
         
 api = FrostAPI()
-df_periode = api.hent_data_for_periode("2023-01-01", "2024-01-07")
+df_periode = api.fetch_data_for_periode("2023-01-01", "2024-01-07")
 
 if not df_periode.empty:
     print(df_periode.head())
@@ -448,7 +449,7 @@ class DataAnalyse:
         }
 
 api = FrostAPI()
-df_periode = api.hent_data_for_periode("2023-01-01", "2023-02-01")
+df_periode = api.fetch_data_for_periode("2023-01-01", "2023-02-01")
 
 if not df_periode.empty:
     print(df_periode.head())
