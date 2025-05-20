@@ -25,148 +25,104 @@ class DataPlotting:
         data = data[~data.index.duplicated(keep='first')]
         self.data = data
 
-    def plot_histogram(self,kolonne, filnavn="Visualisering.png"):
-
+    def plot_histogram(self, kolonne):
         if not self.data.empty:
-            plt.figure(figsize=(8, 6))
-            sns.histplot(self.data[kolonne], kde=True, color='skyblue', edgecolor='black')
-            plt.axvline(self.data[kolonne].mean(), color='red',linestyle='--', label=f'mean:{self.data[kolonne].mean():.2f}')
-            plt.axvline(self.data[kolonne].median(), color='green',linestyle='-.', label=f'Median:{self.data[kolonne].median():.2f}')
-
-            plt.title(f"Histogram for {kolonne}")
-            plt.xlabel(kolonne)
-            plt.ylabel("Frekvens")
-            plt.legend()
+            fig, ax = plt.subplots(figsize=(8, 6))
+            sns.histplot(self.data[kolonne], kde=True, color='skyblue', edgecolor='black', ax=ax)
+            ax.axvline(self.data[kolonne].mean(), color='red', linestyle='--', label=f'Gjennomsnitt: {self.data[kolonne].mean():.2f}')
+            ax.axvline(self.data[kolonne].median(), color='green', linestyle='-.', label=f'Median: {self.data[kolonne].median():.2f}')
+            ax.set_title(f"Histogram for {kolonne}")
+            ax.set_xlabel(kolonne)
+            ax.set_ylabel("Frekvens")
+            ax.legend()
             plt.tight_layout()
-            plt.savefig(filnavn)
-            plt.close()
-            print(f"Histogram lagret som {filnavn}")
-        else:
-            print("ingen data tilgjenlig for plotting")
+            return fig
+        return None
 
-    def plot_box_plot(self, filnavn="Boxplot.png"): #Identifiserer utliggere
-
+    def plot_box_plot(self):
         if not self.data.empty:
-            numerical_columns = self.data.select_dtypes(include=['float64', 'int64']).columns
-
-            plt.figure(figsize=(12, 8))
-            self.data[numerical_columns].boxplot()
-            plt.title('Boxplot av Værvariabler')
-            plt.ylabel('Verdi')
+            fig, ax = plt.subplots(figsize=(12, 8))
+            self.data.select_dtypes(include=['float64', 'int64']).boxplot(ax=ax)
+            ax.set_title('Boxplot av Værvariabler')
+            ax.set_ylabel('Verdi')
             plt.xticks(rotation=45)
             plt.tight_layout()
-            plt.savefig(filnavn)
-            plt.close()
-            print(f'Box plot lagret som {filnavn}')
-        else:
-            print('Ingen data tilgjenglig for plotting')
+            return fig
+        return None
 
-    def plot_korrelasjonsmatrise(self, filnavn= "Korrelasjonsmatrise.png"):
-
+    def plot_correlation_matrix(self):
         if not self.data.empty:
-            numerical_columns = self.data.select_dtypes(include=['float64', 'int64']).columns
-            korrelasjon_matrise = self.data[numerical_columns].corr()
-
-            plt.figure(figsize=(10, 8))
-            sns.heatmap(korrelasjon_matrise, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
-            plt.title('Korrelasjonsmatrise av Værvariabler')
+            fig, ax = plt.subplots(figsize=(10, 8))
+            correlation_matrix = self.data.select_dtypes(include=['float64', 'int64']).corr()
+            sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5, ax=ax)
+            ax.set_title('Korrelasjonsmatrise av Værvariabler')
             plt.tight_layout()
-            plt.savefig(filnavn)
-            plt.close()
-            print(f"Korrelasjonsmatrise lagret som {filnavn}")
-        else:
-            print("Ingen data tilgjenglig for plotting")
+            return fig
+        return None
 
-    def plot_par_analyse(self, filnavn="Paranalyse.png"):
 
+    def plot_pair_analysis(self):
         if not self.data.empty:
             numerical_columns = self.data.select_dtypes(include=['float64', 'int64']).columns
-
             if len(numerical_columns) > 4:
                 numerical_columns = numerical_columns[:4]
-
             pair_grid = sns.pairplot(self.data[numerical_columns], height=2.5, diag_kind='kde')
             pair_grid.fig.suptitle('Parvise relasjoner mellom værvariablene', y=1.02)
             plt.tight_layout()
-            plt.savefig(filnavn)
-            plt.close()
-            print(f'Paranalyse lagret som {filnavn}')
-        else:
-            print("Ingen data tilgjenglig for plotting")
-    
+            return pair_grid.fig
+        return None
 
 
 
-
-    def plot_tidserie(self, kolonne, filnavn="Interaktiv.html"):
-        print("Antall rader i data:", len(self.data))
-        print("Kolonner:", self.data.columns)
-
-        if not self.data.empty:
-            try:
-                fig = go.Figure()
-                fig.add_trace(go.Scatter(
-                    x=self.data.index, 
-                    y=self.data[kolonne], 
-                    mode='lines+markers', 
-                    name=kolonne, 
-                    line=dict(color='orange')
-                ))
-                fig.update_layout(
-                    title=f'Interaktiv Tidsserie for {kolonne}',
-                    xaxis_title='Tid', 
-                    yaxis_title=kolonne, 
-                    xaxis=dict(rangeslider=dict(visible=True)), 
-                    template='plotly_white'
-                )
-                fig.write_html(filnavn)
-                print(f"Interaktiv plott lagret som: {filnavn}")
-
-                print("Lagringsmappe:", os.getcwd())
-
-                webbrowser.open(filnavn)
-            except Exception as e:
-                print(f"Feil ved plotting: {e}")
-        else:
-            print(" Ingen data tilgjengelig for interaktiv plott")
+    def plot_timeseries(self, column):
+        if not self.data.empty and column in self.data.columns:
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(
+                x=self.data.index, 
+                y=self.data[column], 
+                mode='lines+markers', 
+                name=column, 
+                line=dict(color='orange')
+            ))
+            fig.update_layout(
+                title=f'Interaktiv Tidsserie for {column}',
+                xaxis_title='Tid', 
+                yaxis_title=column, 
+                xaxis=dict(rangeslider=dict(visible=True)), 
+                template='plotly_white'
+            )
+            return fig
+        return None
 
 
-    def plot_tidsserie_med_statistikk(self, kolonne, filnavn="Tidsserie_med_statistikk.png"):
-
-        if not self.data.empty:
+    def plot_timeseries_with_statistics(self, column):
+        if not self.data.empty and column in self.data.columns:
             fig, ax = plt.subplots(figsize=(12, 6))
-
-            sns.lineplot(x=self.data.index, y=self.data[kolonne], label='Fanktiske verdier', ax=ax)
-
+            sns.lineplot(x=self.data.index, y=self.data[column], label='Faktiske verdier', ax=ax)
             if len(self.data) > 3:
-                rolling_mean = self.data[kolonne].rolling(window=3, min_periods=1).mean()
-                rolling_std = self.data[kolonne].rolling(window=3, min_periods=1).std()
-
-                ax.plot(self.data.index, rolling_mean, 'r--', label='Glidende mean (3 punkter)')
+                rolling_mean = self.data[column].rolling(window=3, min_periods=1).mean()
+                rolling_std = self.data[column].rolling(window=3, min_periods=1).std()
+                ax.plot(self.data.index, rolling_mean, 'r--', label='Glidende gjennomsnitt (3 punkter)')
                 ax.fill_between(self.data.index, rolling_mean - rolling_std, rolling_mean + rolling_std, color='r', alpha=0.2, label='±1 standardavvik')
+            ax.set_title(f'Tidsserie av {column} med statistiske mål')
+            ax.set_xlabel('Tid')
+            ax.set_ylabel(column)
+            ax.legend()
+            plt.xticks(rotation=45)
+            plt.tight_layout()
+            return fig
+        return None
 
-                ax.set_title(f'Tidsserie av {kolonne} med statistiske mål')
-                ax.set_xlabel('Tid')
-                ax.set_ylabel(kolonne)
-                ax.legend()
-                plt.xticks(rotation=45)
-                plt.tight_layout()
-                plt.savefig(filnavn)
-                plt.close()
-                print(f'tidsserie med statistikk lagret som {filnavn}')
-            else:
-                print("Ingen data tilgjengelig for plotting")
-
-    def sammenlign_med_yr(self, frost_data, yr_data, kolonne, filnavn="Sammenligning.png"):
+    def compare_with_yr(self, frost_data, yr_data, column, filename="Comparison.png"):
 
         if frost_data.empty or yr_data.empty:
             print("Ingen data tilgjengelig for sammenligning")
             return
-        
-        if kolonne not in frost_data.columns or kolonne not in yr_data.columns:
-            print(f"Kolonnen '{kolonne}' finnes ikke i begge datasett")
+
+        if column not in frost_data.columns or column not in yr_data.columns:
+            print(f"Kolonnen '{column}' finnes ikke i begge datasett")
             return
-        
+
         if not isinstance(frost_data.index, pd.DatetimeIndex):
             frost_data = frost_data.reset_index()
             frost_data["tidspunkt"] = pd.to_datetime(frost_data["tidspunkt"])
@@ -177,42 +133,42 @@ class DataPlotting:
             yr_data.set_index('Tid', inplace=True)
 
         #Tilpasser kolonnene for sammenligning
-        frost_kolonne = kolonne
-        yr_kolonne= kolonne
-        if kolonne == "temperature" and "temperature (C)" in yr_data.columns:
-            yr_kolonne = "temperature (C)"
-            
-        elif kolonne == "wind_speed" and "Windspeed (m/s)" in yr_data.columns:
-            yr_kolonne = "Windspeed (m/s)"
-        
-        plt.figure(figsize=(12,6))
-        plt.plot(frost_data.index, frost_data[frost_kolonne], 'b-', label='Frost(historisk)')
-        plt.plot(yr_data.index, yr_data[yr_kolonne], 'r-', label='Yr (prognose)')
+        frost_column = column
+        yr_column = column
+        if column == "temperature" and "temperature (C)" in yr_data.columns:
+            yr_column = "temperature (C)"
 
-        plt.title(f'Sammenlining av {kolonne} -Historisk vs Prognose')
+        elif column == "wind_speed" and "Windspeed (m/s)" in yr_data.columns:
+            yr_column = "Windspeed (m/s)"
+
+        plt.figure(figsize=(12,6))
+        plt.plot(frost_data.index, frost_data[frost_column], 'b-', label='Frost(historisk)')
+        plt.plot(yr_data.index, yr_data[yr_column], 'r-', label='Yr (prognose)')
+
+        plt.title(f'Sammenlining av {column} -Historisk vs Prognose')
         plt.xlabel('Tid')
-        plt.ylabel(kolonne)
+        plt.ylabel(column)
         plt.legend()
         plt.grid(True)
         plt.xticks(rotation=45)
         plt.tight_layout()
-        plt.savefig(filnavn)
+        plt.savefig(filename)
         plt.close()
-        print(f"Sammenligning lagret som {filnavn}")
+        print(f"Sammenligning lagret som {filename}")
 
         frost_stats = {
-            "mean": round(float(np.mean(frost_data[frost_kolonne])), 2),
-            "Median": round(float(np.median(frost_data[frost_kolonne])), 2),
-            "std_dev": round(float(np.std(frost_data[frost_kolonne])), 2)
+            "mean": round(float(np.mean(frost_data[frost_column])), 2),
+            "Median": round(float(np.median(frost_data[frost_column])), 2),
+            "std_dev": round(float(np.std(frost_data[frost_column])), 2)
         }
 
         yr_stats = {
-            "mean": round(float(np.mean(yr_data[yr_kolonne])), 2),
-            "Median": round(float(np.median(yr_data[yr_kolonne])), 2),
-            "std_dev": round(float(np.std(yr_data[yr_kolonne])), 2)
+            "mean": round(float(np.mean(yr_data[yr_column])), 2),
+            "Median": round(float(np.median(yr_data[yr_column])), 2),
+            "std_dev": round(float(np.std(yr_data[yr_column])), 2)
         }
 
-        print(f"\nStatistikk for {kolonne}:")
+        print(f"\nStatistikk for {column}:")
         print(f"Frost (Historisk): mean={frost_stats['mean']}, Median={frost_stats['Median']}, Std.avvik={frost_stats['std_dev']}")
         print(f"Yr (Prognose): mean={yr_stats['mean']}, Median={yr_stats['Median']}, Std.avvik={yr_stats['std_dev']}")
 
@@ -222,7 +178,7 @@ class DataPlotting:
         }
 if __name__ == "__main__":
     api = FrostAPI()
-    df_periode = api.hent_data_for_periode("2023-01-01", "2023-02-01")
+    df_periode = api.fetch_data_for_periode("2023-01-01", "2023-02-01")
 
     if not df_periode.empty:
         print(df_periode.head())
@@ -232,19 +188,19 @@ if __name__ == "__main__":
         analyzer = DataAnalyse(df_periode)
 
         print("\nStatistical measures:")
-        stats = analyzer.beregn_alle_statistikker()
+        stats = analyzer.calculate_all_statistics()
         print(stats)
 
         print("\nCorrelation analysis:")
-        corr = analyzer.analyser_korrelasjon()
+        corr = analyzer.analyse_correlation()
         print(corr)
 
 
         analyzer.plot_histogram("temperatur")
         analyzer.plot_box_plot()
-        analyzer.plot_korrelasjonsmatrise()  # Make sure to fix the typo in this method
-        analyzer.plot_tidserie("temperatur")
-        analyzer.plot_tidsserie_med_statistikk("temperatur")
+        analyzer.plot_correlation_matrix()
+        analyzer.plot_time_series("temperatur")
+        analyzer.plot_time_series_with_statistics("temperatur")
     else:
         print("Ingen data funnet")
 
