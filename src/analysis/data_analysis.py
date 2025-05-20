@@ -7,8 +7,6 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-
-
 class DataAnalyse:
     
     def __init__(self, data):
@@ -70,9 +68,9 @@ class DataAnalyse:
 
         shapiro_test = stats.shapiro(self.data[kolonne].dropna())
         return {
-            'statistikk': shapiro_test[0],
-            'p-verdi': shapiro_test[1],
-            'er_normalfordelt': shapiro_test[1] > 0.05
+            'statistics': shapiro_test[0],
+            'p-value': shapiro_test[1],
+            'is_normally_distributed': shapiro_test[1] > 0.05
         }
     
 
@@ -95,30 +93,30 @@ class DataAnalyse:
 
         if skewness > 1 and originale_data.min() >= 0:
             #En Logaritmisk transformasjon for positiv skewness
-            transformerte_data = np.log1p(originale_data)
+            transformed_data = np.log1p(originale_data)
             return{
                 'original': originale_data,
-                'transformert': transformerte_data,
-                'transformasjonstype': 'Log',
+                'transformed': transformed_data,
+                'transformation_type': 'Log',
                 'original_skewness': skewness,
-                'transformert_skewness': transformerte_data.skew()
+                'transformed_skewness': transformed_data.skew()
             }
         elif skewness < -1:
             #En eksponensiell transformasjon for negativ skewness
-            transformerte_data = np.exp(originale_data/ originale_data.max())
+            transformed_data = np.exp(originale_data/ originale_data.max())
             return{
                 'original': originale_data,
-                'transformert': transformerte_data,
-                'transformasjonstype': 'Eksponensiell',
+                'transformed': transformed_data,
+                'transformation_type': 'Eksponensiell',
                 'original_skewness': skewness,
-                'transformert_skewness': transformerte_data.skew()
+                'transformed_skewness': transformed_data.skew()
             }
         else:
             #Ingen transformasjon nødvendig
             return{
                 'original': originale_data,
-                'transformert': originale_data,
-                'transformasjonstype': 'Ingen',
+                'transformed': originale_data,
+                'transformation_type': 'Ingen',
                 'original_skewness': skewness,
-                'transformert_skewness': skewness
+                'transformed_skewness': skewness
             }
