@@ -112,7 +112,7 @@ class DataPlotting:
             plt.tight_layout()
             return fig
         return None
-
+"""
     def compare_with_yr(self, frost_data, yr_data, column, filename="Comparison.png"):
 
         if frost_data.empty or yr_data.empty:
@@ -176,6 +176,8 @@ class DataPlotting:
             "frost": frost_stats,
             "yr": yr_stats
         }
+
+"""
 if __name__ == "__main__":
     api = FrostAPI()
     df_periode = api.fetch_data_for_periode("2023-01-01", "2023-02-01")
@@ -185,7 +187,7 @@ if __name__ == "__main__":
         print(df_periode.describe())
 
 
-        analyzer = DataAnalyse(df_periode)
+        analyzer = DataPlotting(df_periode)
 
         print("\nStatistical measures:")
         stats = analyzer.calculate_all_statistics()
@@ -199,16 +201,16 @@ if __name__ == "__main__":
         analyzer.plot_histogram("temperatur")
         analyzer.plot_box_plot()
         analyzer.plot_correlation_matrix()
-        analyzer.plot_time_series("temperatur")
-        analyzer.plot_time_series_with_statistics("temperatur")
+        analyzer.plot_timeseries("temperatur")
+        analyzer.plot_timeseries_with_statistics("temperatur")
     else:
         print("Ingen data funnet")
 
 
-print("DataAnalyse class defined successfully")
+print("DataPlotting class defined successfully")
 test_data = pd.DataFrame({'temperature': [1, 2, 3]})
-test_analyzer = DataAnalyse(test_data)
-print("DataAnalyse object created successfully")
+test_analyzer = DataPlotting(test_data)
+print("DataPlotting object created successfully")
 
 
 
