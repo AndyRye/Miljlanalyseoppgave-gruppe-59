@@ -76,7 +76,7 @@ class FrostAPI:
             for o in item["observations"]:
                 eid = o["elementId"]
                 if eid == "air_temperature":
-                    rows[k]["temperatur"] = o["value"]
+                    rows[k]["temperature"] = o["value"]
                 elif eid == "cloud_area_fraction":
                     rows[k]["cloud_area_fraction"] = o["value"]
                 elif eid == "wind_speed":
