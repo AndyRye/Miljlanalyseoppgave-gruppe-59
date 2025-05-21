@@ -26,8 +26,6 @@ class PredictiveAnalysis:
     
     def fetch_and_prepare_data(self):
         df_periode = self.api.fetch_data_for_periode(self.start, self.end)
-        #if self.station: 
-            #df_periode = df_periode[df_periode["stasjon"] == self.station]
             
         df = df_periode.copy()
         #Makes a coloumn that represents the values from the previous hour
@@ -79,6 +77,7 @@ class PredictiveAnalysis:
         return self.y_test, self.y_pred
     
     def forecast(self, hours = 1):
+        #Returns a list with predictions 
         last = self.df.iloc[-1].copy()
         preds =[]
         
@@ -93,6 +92,4 @@ class PredictiveAnalysis:
             #Updates "last" with the next prediction
             last["temperature"] = next_temp
         
-        
-
         return preds
