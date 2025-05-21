@@ -26,19 +26,62 @@ class DataPlotting:
         data = data[~data.index.duplicated(keep='first')]
         self.data = data
 
-    def plot_histogram(self, kolonne):
-        if not self.data.empty:
-            fig, ax = plt.subplots(figsize=(8, 6))
-            sns.histplot(self.data[kolonne], kde=True, color='skyblue', edgecolor='black', ax=ax)
-            ax.axvline(self.data[kolonne].mean(), color='red', linestyle='--', label=f'Gjennomsnitt: {self.data[kolonne].mean():.2f}')
-            ax.axvline(self.data[kolonne].median(), color='green', linestyle='-.', label=f'Median: {self.data[kolonne].median():.2f}')
-            ax.set_title(f"Histogram for {kolonne}")
-            ax.set_xlabel(kolonne)
-            ax.set_ylabel("Frekvens")
-            ax.legend()
-            plt.tight_layout()
-            return fig
-        return None
+    def plot_histogram(self, column, title):
+        if self.data.empty or column not in self.data.columns:
+            return None
+        titles = ["Temperatur (C)", "Vind (m/s)", "Skydekke (%)"]
+        for i in range(len(titles)):
+            if title in titles[i]:
+                if i == 2:
+                    values = self.data[column].dropna()*10
+                else:
+                    values = self.data[column].dropna()
+                mean_val = values.mean()
+                median_val = values.median()
+
+                fig = go.Figure()
+
+                fig.add_trace(go.Histogram(
+                    x=values,
+                    nbinsx=30,
+                    name=column,
+                    marker_color='skyblue',
+                    opacity=0.75
+                ))
+
+
+                fig.add_vline( x=mean_val, line=dict(color='red', dash='dash'))
+                fig.add_vline(x=median_val, line=dict(color='green', dash='dot'))
+
+                fig.add_annotation(
+                    x=0,
+                    y=1.05,
+                    yref='paper',
+                    xref='paper',
+                    text=f'Gjennomsnitt: {mean_val:.2f}',
+                    font =dict(color='red'),
+                    showarrow=False
+                    
+                )
+                fig.add_annotation(
+                    x=1,
+                    y=1.05,
+                    yref='paper',
+                    xref='paper',
+                    text=f'Median: {median_val:.2f}',
+                    font =dict(color='green'),
+                    showarrow=False
+                )
+                
+                fig.update_layout(
+                    title=f'Interaktivt histogram for {title}',
+                    xaxis_title=titles[i],
+                    yaxis_title='Frekvens',
+                    bargap=0.05,
+                    template='plotly_white'
+                )
+
+                return fig
 
     def plot_box_plot(self):
         if not self.data.empty:
@@ -75,28 +118,35 @@ class DataPlotting:
 
 
 
-    def plot_timeseries(self, column):
+    def plot_timeseries(self, column, title_name):
+        titles = ["Temperatur (C)", "Vind (m/s)", "Skydekke (%)"]
         if not self.data.empty and column in self.data.columns:
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=self.data.index, 
-                y=self.data[column], 
-                mode='lines+markers', 
-                name=column, 
-                line=dict(color='orange')
-            ))
-            fig.update_layout(
-                title=f'Interaktiv Tidsserie for {column}',
-                xaxis_title='Tid', 
-                yaxis_title=column, 
-                xaxis=dict(rangeslider=dict(visible=True)), 
-                template='plotly_white'
-            )
-            return fig
+            for i in range(len(titles)):
+                if title_name in titles[i]:
+                    if i == 2:
+                        values = self.data[column].dropna()*10
+                    else:
+                        values = self.data[column].dropna()
+                    fig = go.Figure()
+                    fig.add_trace(go.Scatter(
+                        x=self.data.index, 
+                        y=values, 
+                        mode='lines+markers', 
+                        name=column,
+                        line=dict(color='orange')
+                    ))
+                    fig.update_layout(
+                        title=f'Interaktiv Tidsserie for {title_name}',
+                        xaxis_title='Tid', 
+                        yaxis_title=titles[i], 
+                        xaxis=dict(rangeslider=dict(visible=True)), 
+                        template='plotly_white'
+                    )
+                    return fig
         return None
 
 
-    def plot_timeseries_with_statistics(self, column):
+    def plot_timeseries_with_statistics(self, column, title):
         if not self.data.empty and column in self.data.columns:
             fig, ax = plt.subplots(figsize=(12, 6))
             sns.lineplot(x=self.data.index, y=self.data[column], label='Faktiske verdier', ax=ax)
@@ -105,9 +155,9 @@ class DataPlotting:
                 rolling_std = self.data[column].rolling(window=3, min_periods=1).std()
                 ax.plot(self.data.index, rolling_mean, 'r--', label='Glidende gjennomsnitt (3 punkter)')
                 ax.fill_between(self.data.index, rolling_mean - rolling_std, rolling_mean + rolling_std, color='r', alpha=0.2, label='±1 standardavvik')
-            ax.set_title(f'Tidsserie av {column} med statistiske mål')
+            ax.set_title(f'Tidsserie av {title} med statistiske mål')
             ax.set_xlabel('Tid')
-            ax.set_ylabel(column)
+            ax.set_ylabel(title.capitalize())
             ax.legend()
             plt.xticks(rotation=45)
             plt.tight_layout()
