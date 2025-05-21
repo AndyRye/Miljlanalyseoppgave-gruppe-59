@@ -16,9 +16,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from src.data_collection.frost import FrostAPI
 
 class TestFrostAPI(unittest.TestCase):
-    """
-    Test cases for the frostAPI class
-    """
+    #Test cases for the frostAPI class
     def setUp(self):
         self.api = FrostAPI()
         self.sample_observations = [
@@ -51,8 +49,8 @@ class TestFrostAPI(unittest.TestCase):
         mock_get.return_value = mock_response
         df = self.api.fetch_data("2023-01-01", "2023-01-02")
         self.assertFalse(df.empty)
-        self.assertIn("temperatur", df.columns)
-        self.assertEqual(df.iloc[0]["temperatur"], 3.2)
+        self.assertIn("temperature", df.columns)
+        self.assertEqual(df.iloc[0]["temperature"], 3.2)
 
     @patch("requests.get") 
     def test_data_fetch_empty(self, mock_get):

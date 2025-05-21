@@ -19,6 +19,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.data_collection.frost import FrostAPI
 from src.analysis.data_analysis import DataAnalyse
 
+
 class DataPlotting: 
 
     def __init__(self, data):
