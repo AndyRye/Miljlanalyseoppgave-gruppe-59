@@ -128,12 +128,14 @@ class FrostAPI:
             return full_df
         else:
             return pd.DataFrame()
+        
+
 if __name__ == "__main__":        
     api = FrostAPI()
     df_periode = api.hent_data_for_periode("2023-01-01", "2024-01-07")
 
-if not df_periode.empty:
-    print(df_periode.head())
-    print(df_periode.describe())
-else:
-    print("Ingen data funnet")
+    if not df_periode.empty:
+        print(df_periode.head())
+        print(df_periode.describe())
+    else:
+        print("Ingen data funnet")
