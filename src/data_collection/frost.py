@@ -76,7 +76,7 @@ class FrostAPI:
             for o in item["observations"]:
                 eid = o["elementId"]
                 if eid == "air_temperature":
-                    rows[k]["temperatur"] = o["value"]
+                    rows[k]["temperature"] = o["value"]
                 elif eid == "cloud_area_fraction":
                     rows[k]["cloud_area_fraction"] = o["value"]
                 elif eid == "wind_speed":
@@ -130,10 +130,10 @@ class FrostAPI:
             return pd.DataFrame()
 if __name__ == "__main__":        
     api = FrostAPI()
-    df_periode = api.hent_data_for_periode("2023-01-01", "2024-01-07")
+    df_periode = api.fetch_data_for_periode("2023-01-01", "2024-01-07")
 
-if not df_periode.empty:
-    print(df_periode.head())
-    print(df_periode.describe())
-else:
-    print("Ingen data funnet")
+    if not df_periode.empty:
+        print(df_periode.head())
+        print(df_periode.describe())
+    else:
+        print("Ingen data funnet")

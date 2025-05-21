@@ -32,7 +32,7 @@ class DataAnalyse:
 
         }   
     
-    def caluclate_all_statistics(self):
+    def calculate_all_statistics(self):
 
         numerical_columns = self.data.select_dtypes(include=['float64', 'int64']).columns
 
@@ -75,16 +75,21 @@ class DataAnalyse:
     
 
     def remove_outliers(self, kolonne, z_score_threshold=3):
-        
+        outliers = pd.DataFrame()
         while True: 
-            z_scores = np.abs(zscore(self.data[kolonne]))
+            if self.data[kolonne].dropna().nunique() <=1:
+                continue
+            z_scores = np.abs(zscore(self.data[kolonne], nan_policy='omit'))
             ny_data = self.data[z_scores < z_score_threshold]
+            new_outliers = self.data[z_scores >= z_score_threshold]
+
+            outliers = pd.concat([outliers, new_outliers])
 
             if len(ny_data) == len(self.data):
                 break
             self.data = ny_data
         
-        return self.data
+        return self.data, outliers
     
     def handle_skewness(self, kolonne):
 
