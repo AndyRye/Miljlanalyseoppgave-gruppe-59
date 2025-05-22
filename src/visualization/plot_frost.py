@@ -24,45 +24,91 @@ class DataPlotting:
         data = data[~data.index.duplicated(keep='first')]
         self.data = data
 
-    def plot_histogram(self, kolonne):
-        if not self.data.empty:
-            fig, ax = plt.subplots(figsize=(8, 6))
-            sns.histplot(
-                self.data[kolonne], 
-                kde=True, 
-                color='skyblue', 
-                edgecolor='black', 
-                ax=ax
+    def plot_histogram(self, column, title):
+        if self.data.empty or column not in self.data.columns:
+            return None
+        titles = ["Temperatur (C)", "Vind (m/s)", "Skydekke (%)"]
+        for i in range(len(titles)):
+            if title in titles[i]:
+                if i == 2:
+                    values = self.data[column].dropna()*10
+                else:
+                    values = self.data[column].dropna()
+                mean_val = values.mean()
+                median_val = values.median()
+
+                fig = go.Figure()
+
+                fig.add_trace(go.Histogram(
+                    x=values,
+                    nbinsx=30,
+                    name=column,
+                    marker_color='skyblue',
+                    opacity=0.75
+                ))
+
+
+                fig.add_vline( x=mean_val, line=dict(color='red', dash='dash'))
+                fig.add_vline(x=median_val, line=dict(color='green', dash='dot'))
+
+                fig.add_annotation(
+                    x=0,
+                    y=1.05,
+                    yref='paper',
+                    xref='paper',
+                    text=f'Gjennomsnitt: {mean_val:.2f}',
+                    font =dict(color='red'),
+                    showarrow=False
+                    
                 )
-            #Adds vertical lines for mean and median
-            ax.axvline(
-                self.data[kolonne].mean(),
-                color='red', linestyle='--', 
-                label=f'Gjennomsnitt: {self.data[kolonne].mean():.2f}'
+                fig.add_annotation(
+                    x=1,
+                    y=1.05,
+                    yref='paper',
+                    xref='paper',
+                    text=f'Median: {median_val:.2f}',
+                    font =dict(color='green'),
+                    showarrow=False
                 )
-            
-            ax.axvline(self.data[kolonne].median(), 
-                color='green', 
-                linestyle='-.', 
-                label=f'Median: {self.data[kolonne].median():.2f}'
+                
+                fig.update_layout(
+                    title=f'Interaktivt histogram for {title}',
+                    xaxis_title=titles[i],
+                    yaxis_title='Frekvens',
+                    bargap=0.05,
+                    template='plotly_white'
                 )
-            
-            ax.set_title(f"Histogram for {kolonne}")
-            ax.set_xlabel(kolonne)
-            ax.set_ylabel("Frekvens")
-            ax.legend()
-            plt.tight_layout()
-            return fig
-        return None
+
+                return fig
 
     def plot_box_plot(self):
         if not self.data.empty:
-            fig, ax = plt.subplots(figsize=(12, 8))
-            self.data.select_dtypes(include=['float64', 'int64']).boxplot(ax=ax)
-            ax.set_title('Boxplot av Værvariabler')
-            ax.set_ylabel('Verdi')
-            plt.xticks(rotation=45)
-            plt.tight_layout()
+            import plotly.express as px
+            import pandas as pd
+
+            # Henter numeriske kolonner
+            numerical_data = self.data.select_dtypes(include=['float64', 'int64'])
+
+            # Konverterer til "long format" for Plotly
+            melted_df = numerical_data.reset_index().melt(id_vars=numerical_data.index.name or 'index', 
+                                                        var_name='Variabel', value_name='Verdi')
+
+            fig = px.box(
+                melted_df,
+                x='Variabel',
+                y='Verdi',
+                title='Boxplot av Værvariabler',
+                points='all',  # Vis datapunkter også
+                template='plotly_white'
+            )
+
+            fig.update_layout(
+                xaxis_title='Variabel',
+                yaxis_title='Verdi',
+                xaxis_tickangle=-45,
+                height=600
+            )
+
             return fig
         return None
 
@@ -79,89 +125,111 @@ class DataPlotting:
 
     def plot_pair_analysis(self):
         if not self.data.empty:
+            import plotly.express as px
+
             numerical_columns = self.data.select_dtypes(include=['float64', 'int64']).columns
             if len(numerical_columns) > 4:
-                numerical_columns = numerical_columns[:4]
-            pair_grid = sns.pairplot(self.data[numerical_columns], height=2.5, diag_kind='kde')
-            pair_grid.fig.suptitle('Parvise relasjoner mellom værvariablene', y=1.02)
-            plt.tight_layout()
-            return pair_grid.fig
-        return None
+                numerical_columns = numerical_columns[:4]  # Begrens for tydelig visning
 
-
-
-    def plot_timeseries(self, column):
-        if not self.data.empty and column in self.data.columns:
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=self.data.index, 
-                y=self.data[column], 
-                mode='lines+markers', 
-                name=column, 
-                line=dict(color='orange')
-            ))
-            fig.update_layout(
-                title=f'Interaktiv Tidsserie for {column}',
-                xaxis_title='Tid', 
-                yaxis_title=column, 
-                xaxis=dict(rangeslider=dict(visible=True)), 
-                template='plotly_white'
+            fig = px.scatter_matrix(
+                self.data,
+                dimensions=numerical_columns,
+                title='Parvise relasjoner mellom værvariablene',
+                height=700,
+                width=700,
+                labels={col: col.capitalize() for col in numerical_columns}
             )
+
+            fig.update_traces(diagonal_visible=True, marker=dict(size=5, opacity=0.6))
+            fig.update_layout(
+                template='plotly_white',
+                dragmode='select'
+            )
+
             return fig
         return None
 
 
-    def plot_timeseries_with_statistics(self, column):
+
+    def plot_timeseries(self, column, title_name):
+        titles = ["Temperatur (C)", "Vind (m/s)", "Skydekke (%)"]
         if not self.data.empty and column in self.data.columns:
-            fig, ax = plt.subplots(figsize=(12, 6))
-            sns.lineplot(x=self.data.index, y=self.data[column], label='Faktiske verdier', ax=ax)
-            if len(self.data) > 3:
-                rolling_mean = self.data[column].rolling(window=3, min_periods=1).mean()
-                rolling_std = self.data[column].rolling(window=3, min_periods=1).std()
-                ax.plot(self.data.index, rolling_mean, 'r--', label='Glidende gjennomsnitt (3 punkter)')
-                ax.fill_between(self.data.index, rolling_mean - rolling_std, rolling_mean + rolling_std, color='r', alpha=0.2, label='±1 standardavvik')
-            ax.set_title(f'Tidsserie av {column} med statistiske mål')
-            ax.set_xlabel('Tid')
-            ax.set_ylabel(column)
-            ax.legend()
-            plt.xticks(rotation=45)
-            plt.tight_layout()
+            for i in range(len(titles)):
+                if title_name in titles[i]:
+                    if i == 2:
+                        values = self.data[column].dropna()*10
+                    else:
+                        values = self.data[column].dropna()
+                    fig = go.Figure()
+                    fig.add_trace(go.Scatter(
+                        x=self.data.index, 
+                        y=values, 
+                        mode='lines+markers', 
+                        name=column,
+                        line=dict(color='orange')
+                    ))
+                    fig.update_layout(
+                        title=f'Interaktiv Tidsserie for {title_name}',
+                        xaxis_title='Tid', 
+                        yaxis_title=titles[i], 
+                        xaxis=dict(rangeslider=dict(visible=True)), 
+                        template='plotly_white'
+                    )
+                    return fig
+        return None
+
+
+    def plot_timeseries_with_statistics(self, column, title):
+        if not self.data.empty and column in self.data.columns:
+            import plotly.graph_objects as go
+
+            values = self.data[column].dropna()
+            rolling_mean = values.rolling(window=3, min_periods=1).mean()
+            rolling_std = values.rolling(window=3, min_periods=1).std()
+
+            fig = go.Figure()
+
+            # Faktiske verdier
+            fig.add_trace(go.Scatter(
+                x=self.data.index,
+                y=values,
+                mode='lines+markers',
+                name='Faktiske verdier',
+                line=dict(color='blue')
+            ))
+
+            # Glidende gjennomsnitt
+            fig.add_trace(go.Scatter(
+                x=self.data.index,
+                y=rolling_mean,
+                mode='lines',
+                name='Glidende gjennomsnitt (3 punkter)',
+                line=dict(color='red', dash='dash')
+            ))
+
+            # ±1 standardavvik som område
+            fig.add_trace(go.Scatter(
+                x=self.data.index.tolist() + self.data.index[::-1].tolist(),
+                y=(rolling_mean + rolling_std).tolist() + (rolling_mean - rolling_std)[::-1].tolist(),
+                fill='toself',
+                fillcolor='rgba(255, 0, 0, 0.2)',
+                line=dict(color='rgba(255,255,255,0)'),
+                hoverinfo="skip",
+                name='±1 standardavvik'
+            ))
+
+            fig.update_layout(
+                title=f'Tidsserie av {title} med statistiske mål',
+                xaxis_title='Tid',
+                yaxis_title=title.capitalize(),
+                template='plotly_white',
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                xaxis=dict(rangeslider=dict(visible=True))
+            )
+
             return fig
         return None
     
-if __name__ == "__main__":
-    api = FrostAPI()
-    df_periode = api.fetch_data_for_periode("2023-01-01", "2023-02-01")
-
-    if not df_periode.empty:
-        print(df_periode.head())
-        print(df_periode.describe())
-
-
-        analyzer = DataPlotting(df_periode)
-
-        print("\nStatistical measures:")
-        stats = analyzer.calculate_all_statistics()
-        print(stats)
-
-        print("\nCorrelation analysis:")
-        corr = analyzer.analyse_correlation()
-        print(corr)
-
-
-        analyzer.plot_histogram("temperatur")
-        analyzer.plot_box_plot()
-        analyzer.plot_correlation_matrix()
-        analyzer.plot_timeseries("temperatur")
-        analyzer.plot_timeseries_with_statistics("temperatur")
-    else:
-        print("Ingen data funnet")
-
-
-print("DataPlotting class defined successfully")
-test_data = pd.DataFrame({'temperature': [1, 2, 3]})
-test_analyzer = DataPlotting(test_data)
-print("DataPlotting object created successfully")
 
 
 

@@ -28,7 +28,7 @@ class DataAnalysis:
 
         }   
     
-    def caluclate_all_statistics(self):
+    def calculate_all_statistics(self):
 
         numerical_columns = self.data.select_dtypes(include=['float64', 'int64']).columns
 
@@ -70,24 +70,29 @@ class DataAnalysis:
         }
     
 
-    def remove_outliers(self, kolonne, z_score_threshold = 1):
-        
+    def remove_outliers(self, kolonne, z_score_threshold=3):
+        outliers = pd.DataFrame()
         while True: 
-            z_scores = np.abs(zscore(self.data[kolonne]))
+            if self.data[kolonne].dropna().nunique() <=2:
+                continue
+            z_scores = np.abs(zscore(self.data[kolonne], nan_policy='omit'))
             ny_data = self.data[z_scores < z_score_threshold]
+            new_outliers = self.data[z_scores >= z_score_threshold]
+
+            outliers = pd.concat([outliers, new_outliers])
 
             if len(ny_data) == len(self.data):
                 break
             self.data = ny_data
         
-        return self.data
+        return self.data, outliers
     
     def handle_skewness(self, kolonne):
 
         originale_data = self.data[kolonne]
         skewness = originale_data.skew()
 
-        if skewness > 1 and originale_data.min() >= 0:
+        if skewness > 0.5 and originale_data.min() >= 0:
             #En Logaritmisk transformasjon for positiv skewness
             transformed_data = np.log1p(originale_data)
             return{
@@ -97,7 +102,7 @@ class DataAnalysis:
                 'original_skewness': skewness,
                 'transformed_skewness': transformed_data.skew()
             }
-        elif skewness < -1:
+        elif skewness < -0.5 and originale_data.min() >= 0:
             #En eksponensiell transformasjon for negativ skewness
             transformed_data = np.exp(originale_data/ originale_data.max())
             return{

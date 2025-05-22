@@ -1,7 +1,13 @@
-import matplotlib.pyplot as plt
+import sys
+import os
 import pandas as pd
-from src.analysis import PredictiveAnalysis
-from src.visualization import PlottingPredictiveAnalysis
+import plotly.graph_objects as go
+import plotly.express as px
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from analysis.predictive_analysis import PredictiveAnalysis
+
 
 class PlottingPredictiveAnalysis:
 
@@ -14,30 +20,36 @@ class PlottingPredictiveAnalysis:
     
     def plot_predictive_analysis(self):
         y_test, y_pred = self.analysis.get_result()
-        plt.plot(y_test.values, label = "Actual")
-        plt.plot(y_pred, label = "Predicted")
-        plt.title("Predicted Vs Actual Temperature")
-        plt.xlabel("Time")
-        plt.ylabel("Temperature")
-        plt.legend()
-        plt.grid()
-        plt.tight_layout()
-        plt.savefig("prediction_vs_real.png")
-        plt.show()
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(y=y_test.values, mode='lines', name='Faktisk'))
+        fig.add_trace(go.Scatter(y=y_pred, mode='lines', name='Predikert'))
+
+        fig.update_layout(
+            title="Faktisk vs Predikert temperatur",
+            xaxis_title="Tidssteg",
+            yaxis_title="Temperatur",
+            legend=dict(x=0, y=1),
+            template="plotly_white"
+        )
+
+        return fig
     
     def plot_forecast(self, history: pd.Series, forecast: list):
-        plt.figure(figsize=(10,4))
-        plt.plot(history.values, label="History")
-        fut_idx = range(len( history),len(history) + len(forecast))
-        plt.plot(fut_idx, forecast, 'o--', label="Forecast")
-        plt.title("Historical and Forecasted Temperature")
-        plt.xlabel("Time Step")
-        plt.ylabel("Temperature")
-        plt.legend()
-        plt.grid(True)
-        plt.savefig("prediction_vs_real2.png")
-        plt.tight_layout()
-        plt.show()
+        fut_idx = list(range(len(history), len(history) + len(forecast)))
+
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(y=history.values, mode='lines', name='Historikk'))
+        fig.add_trace(go.Scatter(x=fut_idx, y=forecast, mode='lines+markers', name='Prognose'))
+
+        fig.update_layout(
+            title="Historiske verdier + prognose",
+            xaxis_title="Tidssteg",
+            yaxis_title="Temperatur",
+            template="plotly_white"
+        )
+
+        return fig
 
 if __name__=="__main__":
     pa = PredictiveAnalysis()
