@@ -2,12 +2,8 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 from scipy.stats import zscore
-import sys
-import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-class DataAnalyse:
+class DataAnalysis:
     
     def __init__(self, data):
         self.data = data
