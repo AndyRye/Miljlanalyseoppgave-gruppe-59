@@ -2,12 +2,8 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 from scipy.stats import zscore
-import sys
-import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-class DataAnalyse:
+class DataAnalysis:
     
     def __init__(self, data):
         self.data = data
@@ -74,7 +70,7 @@ class DataAnalyse:
         }
     
 
-    def remove_outliers(self, kolonne, z_score_threshold=3):
+    def remove_outliers(self, kolonne, z_score_threshold = 1):
         
         while True: 
             z_scores = np.abs(zscore(self.data[kolonne]))

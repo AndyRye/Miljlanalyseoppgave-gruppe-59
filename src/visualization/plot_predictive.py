@@ -1,12 +1,7 @@
-import sys
-import os
 import matplotlib.pyplot as plt
 import pandas as pd
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from analysis.predictive_analysis import PredictiveAnalysis
-from visualization.plotting_predictive_analysis import PlottingPredictiveAnalysis
+from src.analysis import PredictiveAnalysis
+from src.visualization import PlottingPredictiveAnalysis
 
 class PlottingPredictiveAnalysis:
 

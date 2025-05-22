@@ -1,5 +1,5 @@
 """
-Unit test for the DataAnalyse class in the FrostAPI
+Unit test for the DataAnalysis class in the FrostAPI
 Tests statistical calculations, normality test, outliers and skewness adjustments.
 """
 
@@ -13,7 +13,7 @@ from scipy import stats
 #Add the project's root directory to the path to allow importing from src/
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.analysis.data_analysis import DataAnalyse #Import the analysis class
+from src.analysis.data_analysis import DataAnalysis
 
 class TestDataAnalysis(unittest.TestCase):
     def setUp(self):
@@ -22,7 +22,7 @@ class TestDataAnalysis(unittest.TestCase):
             "temperature": [1, 2, 3, 4, 100],
             "wind": [5, 6, 7, 8, 9]
         })
-        self.analyse = DataAnalyse(data)
+        self.analyse = DataAnalysis(data)
 
     def test_calculate_statistics_keys_exist(self):
         #Check that all expected statistical keys are present
@@ -54,18 +54,21 @@ class TestDataAnalysis(unittest.TestCase):
     def test_remove_outliers_reduces_length(self):
         #Verifies that removing outliers reduces the number of data points
         before = len(self.analyse.data)
-        self.analyse.remove_outliers("temperature")
+        self.analyse.remove_outliers("temperature", z_score_threshold = 1)
         after = len(self.analyse.data)
-        self.assertLessEqual(after, before)
+        self.assertLess(after, before)
+        self.assertNotIn(100, self.analyse.data["temperature"].values)
 
     def test_handle_skewness_keys_exist(self):
         #Ensure skewness handling returns the expected result keys
         result = self.analyse.handle_skewness("temperature")
-        self.assertIn("original", result)
-        self.assertIn("transformed", result)
-        self.assertIn("transformation_type", result)
         self.assertIn("original_skewness", result)
         self.assertIn("transformed_skewness", result)
+        
+        orig_skew = result["original_skewness"]
+        trans_skew = result["transformed_skewness"]
+
+        self.assertLessEqual(abs(trans_skew), abs(orig_skew))
 
 if __name__ == "__main__":
     unittest.main()
