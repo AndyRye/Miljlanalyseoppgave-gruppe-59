@@ -85,12 +85,32 @@ class DataPlotting:
 
     def plot_box_plot(self):
         if not self.data.empty:
-            fig, ax = plt.subplots(figsize=(12, 8))
-            self.data.select_dtypes(include=['float64', 'int64']).boxplot(ax=ax)
-            ax.set_title('Boxplot av Værvariabler')
-            ax.set_ylabel('Verdi')
-            plt.xticks(rotation=45)
-            plt.tight_layout()
+            import plotly.express as px
+            import pandas as pd
+
+            # Henter numeriske kolonner
+            numerical_data = self.data.select_dtypes(include=['float64', 'int64'])
+
+            # Konverterer til "long format" for Plotly
+            melted_df = numerical_data.reset_index().melt(id_vars=numerical_data.index.name or 'index', 
+                                                        var_name='Variabel', value_name='Verdi')
+
+            fig = px.box(
+                melted_df,
+                x='Variabel',
+                y='Verdi',
+                title='Boxplot av Værvariabler',
+                points='all',  # Vis datapunkter også
+                template='plotly_white'
+            )
+
+            fig.update_layout(
+                xaxis_title='Variabel',
+                yaxis_title='Verdi',
+                xaxis_tickangle=-45,
+                height=600
+            )
+
             return fig
         return None
 
@@ -107,13 +127,28 @@ class DataPlotting:
 
     def plot_pair_analysis(self):
         if not self.data.empty:
+            import plotly.express as px
+
             numerical_columns = self.data.select_dtypes(include=['float64', 'int64']).columns
             if len(numerical_columns) > 4:
-                numerical_columns = numerical_columns[:4]
-            pair_grid = sns.pairplot(self.data[numerical_columns], height=2.5, diag_kind='kde')
-            pair_grid.fig.suptitle('Parvise relasjoner mellom værvariablene', y=1.02)
-            plt.tight_layout()
-            return pair_grid.fig
+                numerical_columns = numerical_columns[:4]  # Begrens for tydelig visning
+
+            fig = px.scatter_matrix(
+                self.data,
+                dimensions=numerical_columns,
+                title='Parvise relasjoner mellom værvariablene',
+                height=700,
+                width=700,
+                labels={col: col.capitalize() for col in numerical_columns}
+            )
+
+            fig.update_traces(diagonal_visible=True, marker=dict(size=5, opacity=0.6))
+            fig.update_layout(
+                template='plotly_white',
+                dragmode='select'
+            )
+
+            return fig
         return None
 
 
@@ -148,21 +183,55 @@ class DataPlotting:
 
     def plot_timeseries_with_statistics(self, column, title):
         if not self.data.empty and column in self.data.columns:
-            fig, ax = plt.subplots(figsize=(12, 6))
-            sns.lineplot(x=self.data.index, y=self.data[column], label='Faktiske verdier', ax=ax)
-            if len(self.data) > 3:
-                rolling_mean = self.data[column].rolling(window=3, min_periods=1).mean()
-                rolling_std = self.data[column].rolling(window=3, min_periods=1).std()
-                ax.plot(self.data.index, rolling_mean, 'r--', label='Glidende gjennomsnitt (3 punkter)')
-                ax.fill_between(self.data.index, rolling_mean - rolling_std, rolling_mean + rolling_std, color='r', alpha=0.2, label='±1 standardavvik')
-            ax.set_title(f'Tidsserie av {title} med statistiske mål')
-            ax.set_xlabel('Tid')
-            ax.set_ylabel(title.capitalize())
-            ax.legend()
-            plt.xticks(rotation=45)
-            plt.tight_layout()
+            import plotly.graph_objects as go
+
+            values = self.data[column].dropna()
+            rolling_mean = values.rolling(window=3, min_periods=1).mean()
+            rolling_std = values.rolling(window=3, min_periods=1).std()
+
+            fig = go.Figure()
+
+            # Faktiske verdier
+            fig.add_trace(go.Scatter(
+                x=self.data.index,
+                y=values,
+                mode='lines+markers',
+                name='Faktiske verdier',
+                line=dict(color='blue')
+            ))
+
+            # Glidende gjennomsnitt
+            fig.add_trace(go.Scatter(
+                x=self.data.index,
+                y=rolling_mean,
+                mode='lines',
+                name='Glidende gjennomsnitt (3 punkter)',
+                line=dict(color='red', dash='dash')
+            ))
+
+            # ±1 standardavvik som område
+            fig.add_trace(go.Scatter(
+                x=self.data.index.tolist() + self.data.index[::-1].tolist(),
+                y=(rolling_mean + rolling_std).tolist() + (rolling_mean - rolling_std)[::-1].tolist(),
+                fill='toself',
+                fillcolor='rgba(255, 0, 0, 0.2)',
+                line=dict(color='rgba(255,255,255,0)'),
+                hoverinfo="skip",
+                name='±1 standardavvik'
+            ))
+
+            fig.update_layout(
+                title=f'Tidsserie av {title} med statistiske mål',
+                xaxis_title='Tid',
+                yaxis_title=title.capitalize(),
+                template='plotly_white',
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                xaxis=dict(rangeslider=dict(visible=True))
+            )
+
             return fig
         return None
+    
 """
     def compare_with_yr(self, frost_data, yr_data, column, filename="Comparison.png"):
 

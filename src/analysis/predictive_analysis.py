@@ -76,12 +76,12 @@ class PredictiveAnalysis:
     def get_result(self):
         return self.y_test, self.y_pred
     
-    def forecast(self, hours = 1):
+    def forecast(self, days):
         #Returns a list with predictions 
         last = self.df.iloc[-1].copy()
         preds =[]
         
-        for _ in range(hours):
+        for _ in range(days):
             inp = pd.DataFrame({
                 "temp_prev": [last["temperature"]],
                 "cloud_prev": [last["cloud_area_fraction"]],

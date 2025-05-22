@@ -77,7 +77,7 @@ class DataAnalyse:
     def remove_outliers(self, kolonne, z_score_threshold=3):
         outliers = pd.DataFrame()
         while True: 
-            if self.data[kolonne].dropna().nunique() <=1:
+            if self.data[kolonne].dropna().nunique() <=2:
                 continue
             z_scores = np.abs(zscore(self.data[kolonne], nan_policy='omit'))
             ny_data = self.data[z_scores < z_score_threshold]
@@ -96,7 +96,7 @@ class DataAnalyse:
         originale_data = self.data[kolonne]
         skewness = originale_data.skew()
 
-        if skewness > 1 and originale_data.min() >= 0:
+        if skewness > 0.5 and originale_data.min() >= 0:
             #En Logaritmisk transformasjon for positiv skewness
             transformed_data = np.log1p(originale_data)
             return{
@@ -106,7 +106,7 @@ class DataAnalyse:
                 'original_skewness': skewness,
                 'transformed_skewness': transformed_data.skew()
             }
-        elif skewness < -1:
+        elif skewness < -0.5 and originale_data.min() >= 0:
             #En eksponensiell transformasjon for negativ skewness
             transformed_data = np.exp(originale_data/ originale_data.max())
             return{
