@@ -86,7 +86,7 @@ class FrostAPI:
                  pd.to_datetime(pd.Series([r["tidspunkt"] for r in rows.values()])))
         return df
     
-    def fetch_data_for_periode(self, start_dato, sluttdato, intervall="W"):
+    def fetch_data_for_periode(self, start_dato, sluttdato, intervall):
         start_date = pd.to_datetime(start_dato)
         end_date = pd.to_datetime(sluttdato)
 
@@ -98,6 +98,8 @@ class FrostAPI:
                 next_date = current_date + pd.DateOffset(weeks=1)
             elif intervall == "M":
                 next_date = current_date + pd.DateOffset(months=1)
+            elif intervall == "D":
+                next_date = current_date + pd.DateOffset(days=1)
             else:
                 raise ValueError("Ugyldig. Bruk 'W' for ukentlig eller 'M' for måndelig")
             

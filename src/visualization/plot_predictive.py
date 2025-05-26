@@ -11,8 +11,8 @@ from analysis.predictive_analysis import PredictiveAnalysis
 
 class PlottingPredictiveAnalysis:
 
-    def __init__(self):
-        self.analysis = PredictiveAnalysis()
+    def __init__(self, start, end):
+        self.analysis = PredictiveAnalysis(start, end)
         self.analysis.fetch_and_prepare_data()
         self.analysis.split_data()
         self.analysis.train_model()

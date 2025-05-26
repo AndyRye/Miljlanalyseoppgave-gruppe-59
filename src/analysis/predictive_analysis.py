@@ -11,7 +11,7 @@ from data_collection.frost import FrostAPI
 
 class PredictiveAnalysis:   
 
-    def __init__(self, start="2023-01-01", end="2024-01-07", station="SN18700:0"):
+    def __init__(self, start, end, station="SN18700:0"):
         #Defining variables and parameters that will be used
         self.api = FrostAPI()
         self.start = start
@@ -25,7 +25,7 @@ class PredictiveAnalysis:
 
     
     def fetch_and_prepare_data(self):
-        df_periode = self.api.fetch_data_for_periode(self.start, self.end)
+        df_periode = self.api.fetch_data_for_periode(self.start, self.end, intervall="M") #intervall kan endres til "W" eller "D" for grudigere opplæring
             
         df = df_periode.copy()
         #Makes a coloumn that represents the values from the previous hour
