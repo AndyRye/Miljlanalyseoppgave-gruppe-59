@@ -1,28 +1,77 @@
-# Project
+Gruppe 59; Amund, Anders, Tom-Vegar
 
-The course has portfolio assessment which forms the basis for the grade in the subject. Portfolio assessment is based on the work you do in your project. The project should be solved in groups, and it is sufficient for one person in the group to submit the answer in Blackboard. When you have solved all the tasks, upload the entire answer as one zip file in BB. The zip file should contain the entire project directory, including all source code, .git directory, etc. It is important that you include the .git directory (an "invisible" directory in the root directory of your project) because it contains your version history. You will receive written feedback on what you have submitted in BB, and you can make improvements to the code right up until the final portfolio submission.
-
-
-The project is divided into the following parts:
-
-1. General Part: Background information about the project and tasks that are common to all parts.
-2. Portfolio Part 1: Focuses on data collection and preparation.
-3. Portfolio Part 2: Focuses on data analysis and visualization.
-
-Final project has to be delivered in Inspera for assessment. The grading scale is A-F.
-
-```{Note}
-We do not recommend starting work on the project before week 6, as we might make changes to it. Until then, you can prepare yourself and focus on learning topics relevant to increasing your competency to deliver the project successfully.
-```
-
-```{Note}
-Your final project solution should be submitted for assessment in Inspera. Please ensure that the virtual environment folder is NOT included in the zip file you upload. Only the requirements.txt file should be included. Additionally, make your central repository publicly accessible and share the link in Inspera.
-```
+# Væranalyse
+dette er en interaktiv Streamlit-applikasjon som henter bearbeider, analyserer og predikerer data som er hentet fra Frost API (Oslo MET)
+appen inkluderer statistikk, Maskinlæring, visualisering og analyse av rådataen som er hentet fra Oslo MET
 
 
-```{important}
-To access the project template, click <a href="https://jupyterhub.apps.stack.it.ntnu.no/hub/user-redirect/git-pull?repo=https%3A%2F%2Fgit.ntnu.no%2FTDT4114%2Fproj_environment.git&#38;urlpath=lab%2Ftree%2Fproj_environment.git%2FREADME.md&#38;branch=main">here</a> to copy source files to Jupyter Hub (NTNU). And/Or clone/download from the GitHub repository: <a href="https://git.ntnu.no/TDT4114/proj_environment">https://git.ntnu.no/TDT4114/proj_environment</a>.
+## Krav for kjøring
+- Python 3.8 + 
+- internett tilkobling 
+- requirements.txt installert
+
+
+## Hvordan kjøre koden
+For å åpne Vær appen må du kjøre:
+        streamlit run data\main_app.py
+i rot-terminalen
+
+## Hvordan funker Appen?
+App-GUIen satt opp i to hoveddeler, en sidebar og en hoveddel
+
+#### Sidebar
+Her kan du velge kondigurasjoner:
+- Datointervallet du vil hente historisk data fra
+- Antall dager du vil predikere
+
+#### Hoveddel
+hoveddelen er delt opp i to Main tabs:
+Historisk data og Prediktiv data
+1. Historik data
+Historisk data har 3 underdelinger:
+- Temperatur
+- Vind
+- Skydekke
+i hver av disse vises grafer som her plottet ved hjelp av klasser
+
+det er også nedlastningsknapper for:
+- Rådata
+- Renset data
+- Uteliggere
+- Transformasjoner
+
+2. Prediktiv data
+her bruker vi PredictiveAnalysis og PlottingPredictiveAnalysis til å vise treningsdataen og prediksjon
+vi viser evaluerings-metri
 
 
 
-```
+## Plotting
+
+### Plotting av historisk data
+
+- Funksjonen init brukes først til å fjerne dupliserte indekser og sparer datasettet. Her bruker vi data.index.duplicates() for å flagge duplikatene, og beholder kun den første forekomsten.
+
+- Videre bruker vi histogram som henter en kolonne fra self.data. Den plotter en rød striplet linje for gjennomsnitt, og en grønn linje for median. Om det er ingen data så returnerer den None. Dette skjer for alle plottefunksjonene
+
+- plot_box_plot velger alle numeriske kolonner og plotter en pandas boxplot.
+
+- plot_correlation_matrix beregner en korrealasjonsmatrise for numeriske kolonner. Vi bruker blant annet sns.heatmap med varme -og kalde farger. Vi har også tallverdier i hver celle, med mellomrom mellom de ulike cellene. 
+
+- plot_pair_analysis tar inn fire numeriske kolonner for bedre oversiktlighet og plotter en scatterplot med bruk av plotly. 
+
+- plot_timeseries er en interkativ tidsserie det vi bruker en rangeslider for å kunne enkelt se innenfor et bestemt tidsrom. I tillegg har vi med hover og zoom slik at leser for en god interaktiv opplevelse på den sentrale grafen.
+
+- plot_timeseries_with_statistics har et glidende gjennomsnitt som skal sikre at vi får en jevn graf i tillegg til standardavvik gitt som skyggeområdet. 
+
+### Plotting av prediskjoner
+
+- Første funksjonen oppretter PredictiveAnalysis-objekt. Bruker funksjonene fra PredictiveAnalysis og får laget en prediksjon på testsettet. 
+
+- plot_predictive_analysis henter reelle og predikerte verdier med get.result, og plotter den i samme figur med plotly. 
+
+- plot_forecast tegner den historisek dataen, fut_idx lager en x-akse for fremtidige punkter. Tegner prognosen som punkter og en striplet linje. 
+
+- Begge metodene bruker plotly til å tegne, pynte, lagre og vise interaktive figurer. 
+
+
