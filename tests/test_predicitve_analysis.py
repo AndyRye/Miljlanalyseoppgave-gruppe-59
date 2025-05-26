@@ -11,7 +11,7 @@ from src.analysis.predictive_analysis import PredictiveAnalysis
 class test_predictive_analysis(unittest.TestCase):
     
     def data_frame(self):
-        #Creates a small data frame for further testing
+        #Lager en liten data frame for videre testing
         self.times = pd.date_range("2023-01-01", periods = 6, freq = "h")
         df = pd.DataFrame({
             "temperature": [10, 12, 14, 16, 18, 20],
@@ -37,15 +37,15 @@ class test_predictive_analysis(unittest.TestCase):
 
     def test_predict_length(self):
         preds = self.pa.predict()
-        #Should be one prediction per y_test row
+        #Sjekker at det er en prediksjon per y_test rad 
         self.assertEqual(len(preds), len(self.pa.y_test))
 
     def test_evaluate_returns_proper_keys(self):
-        #Predicts 4 times ahead 
-        future = self.pa.forecast(hours = 4)
+        # Predikerer 4 dager inn i fremtiden 
+        future = self.pa.forecast(days = 4)
         self.assertIsInstance(future, list)
         self.assertEqual(len(future), 4)
-        #Itierates thru future and tests that its float
+        #Itererer gjennom future og sjekekr at det er av datatype float 
         for val in future:
             self.assertIsInstance(val, float)
 
