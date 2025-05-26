@@ -24,9 +24,25 @@ Klassen starter med konstruere en DataFrame, og tester at split_data deler X og 
 
 Videre bruker vi forecast metoden til å bygge videre på predict, som itererer for flere steg fram i tid. Testen verifiserer at den returnerer riktig antall flyttall samt sjekke at alle talene er riktig datatype
 
+# Enhetstester for DataPlotting
+
+Bruker setUp() for å lage ett data sett som brukes i testing. 
+
+test_histogram_returns_figure() sjekker at plot_histogram() returnerer en gydlig plotly til streamlit applikasjonen. 
+
+test_box_plot_not_none() sjekker at plot_box_plot() plotter en box plot når det finnes tilgjenglig data for plotting. 
+
+# Enhetstester for PlottingPredictiveAnalysis
+
+Lager et testobjekt som brukes til videre testing. 
+
+test_plot_predictive_analysis() sjekker at serienavnene er riktig. 
+
+test_plot_forecast() sjekker at serianvnenn stemmer samt sjekekr at forecast verdiene plottes riktig. 
+
 # Oppsummering 
 
-Alle testene er blitt kjørt og fått OK status. Dermed er vi sikre på at sentrale deler av koden kjører og fungerer som ønsket. 
+Alle testene er blitt kjørt og fått OK status. Dermed er vi sikre på at sentrale deler av koden kjører og fungerer som ønsket. For å kjøre testene skriver man python -m unittest tests/"testen_man_vil_kjøre.py"
 
 
 
