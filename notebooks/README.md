@@ -1,2 +1,0 @@
-Describes the notebooks directory
-

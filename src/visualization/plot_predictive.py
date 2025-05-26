@@ -11,8 +11,8 @@ from analysis.predictive_analysis import PredictiveAnalysis
 
 class PlottingPredictiveAnalysis:
 
-    def __init__(self):
-        self.analysis = PredictiveAnalysis()
+    def __init__(self, start, end):
+        self.analysis = PredictiveAnalysis(start, end)
         self.analysis.fetch_and_prepare_data()
         self.analysis.split_data()
         self.analysis.train_model()
@@ -51,18 +51,3 @@ class PlottingPredictiveAnalysis:
 
         return fig
 
-if __name__=="__main__":
-    pa = PredictiveAnalysis()
-    pa.fetch_and_prepare_data()
-    pa.split_data()
-    pa.train_model()
-    pa.predict()
-
-    print("Eval:", pa.evaluate_model())
-
-    plotter = PlottingPredictiveAnalysis()
-    plotter.plot_predictive_analysis()
-
-    history = pa.df["temperature"].iloc[-20:]
-    future = pa.forecast(hours = 5)
-    plotter.plot_forecast(history, future)

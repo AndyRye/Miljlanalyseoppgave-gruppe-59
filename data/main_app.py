@@ -24,7 +24,7 @@ st.set_page_config(
 st.title("Væranalyse")
 
 
-@st.cache_resource
+@st.cache_resource #her bruker vi en cache_resource for å hente APIen, slik at den ikke hentes på nytt hver gang appen lastes inn
 def fetch_api():
     api = FrostAPI()
     return api
@@ -51,10 +51,10 @@ end_date = st.sidebar.date_input(
 )
 
 prediction_days = st.sidebar.slider(
-    "Antall dager du vil predikere",min_value=1, max_value=30, value=7
+    "Antall dager du vil predikere",min_value=1, max_value=30, value=7 #lager en slider for antall dager du vil predikere
 )
 
-if "show_data" not in st.session_state:
+if "show_data" not in st.session_state: # initisierer en session state for å vite om data skal vises eller ikke, og for å ungå at data hentes på nytt hver gang
     st.session_state["show_data"] = False
 
 if "prev_start" not in st.session_state or "prev_end" not in st.session_state:
@@ -65,7 +65,7 @@ if start_date != st.session_state["prev_start"] or end_date != st.session_state[
     st.session_state["show_data"] = False
 
 @st.cache_data
-def fetch_data_time(start_date, end_date):
+def fetch_data_time(start_date, end_date): #en funskjon som henter data fra API for en gitt tidsperiode
 
     with st.spinner("Henter data..."):
         try:
@@ -81,13 +81,13 @@ def fetch_data_time(start_date, end_date):
             return None
         
 
-def clean_data(df, z_score_threshold=3):
+def clean_data(df, z_score_threshold=3): #bruker DataAnalysis klassen for å rense data, fjerne uteliggere og håndtere skjevfordeling
     data_analyzer = DataAnalysis(df)
     all_outliers = pd.DataFrame()
     transformed_columns = {}
-    for column in df.select_dtypes(include=['float64', 'int64']).columns:
+    for column in df.select_dtypes(include=['float64', 'int64']).columns: #iterer igjennom alle kolonnene 
 
-        cleaned_data, outliers = data_analyzer.remove_outliers(column, z_score_threshold)
+        cleaned_data, outliers = data_analyzer.remove_outliers(column, z_score_threshold) #her bruker funskjonene fra DataAnalysis klassen for å rense data
         all_outliers = pd.concat([all_outliers, outliers])
         data_analyzer.data = cleaned_data
 
@@ -106,23 +106,23 @@ def clean_data(df, z_score_threshold=3):
         "transformations": pd.DataFrame.from_dict(transformed_columns, orient="index"),
         "statistics": statistics,
         "correlation": correlation
-    }
+    } #returnerer en dictionary med de forskjellige resultatene
 
 
 
-def plot_historical_data(df):
+def plot_historical_data(df): #en funskjon bruker DataPlotting klassen for å plotte historiske data
     if df is None or df.empty:
         st.error("Fant ikke data 1")
         return
     analyzer = DataPlotting(df)
     sub_tabs = st.tabs(["Temperatur grafer", "Vind grafer", "Skydekke grafer"])
-    column_dict = {
+    column_dict = {#passer på at Grafene har riktige Titler
         "temperature": "Temperatur",
         "wind_speed": "Vind",
         "cloud_area_fraction": "Skydekke"
     }
 
-    for column, tab in zip(column_dict.keys(), sub_tabs):
+    for column, tab in zip(column_dict.keys(), sub_tabs): #iterer igjennom de forkjellige værformene å plotter de i hver sin tab
         with tab:
             st.subheader(f"{column_dict[column]} Histogram")
             fig_1 = analyzer.plot_histogram(column, column_dict[column])
@@ -145,12 +145,12 @@ def plot_historical_data(df):
 
 
 
-def plot_predictive_data(df, days_to_predict):
+def plot_predictive_data(df, days_to_predict): #en funskjon som bruker PlottingPredictiveAnalysis klassen for å plotte prediksjonsdata
     if df is None or df.empty:
         st.error("Fant ikke data")
         return
     
-    plotter = PlottingPredictiveAnalysis()
+    plotter = PlottingPredictiveAnalysis(start_date, end_date)
     prediction = plotter.analysis
 
 
@@ -169,14 +169,14 @@ def plot_predictive_data(df, days_to_predict):
     st.json(metrics)
 
 
-if st.sidebar.button("vis data"):
+if st.sidebar.button("vis data"): #en knapp som initerer at data skal vises, og lagrer start og sluttdato i session state
     st.session_state["show_data"] = True
-    st.session_state["prev_start"]=start_date
+    st.session_state["prev_start"]=start_date 
     st.session_state["prev_end"]=end_date
 
 
-if st.session_state.get("show_data", False):
-    raw_historical_data = fetch_data_time(start_date, end_date)
+if st.session_state.get("show_data", False): #her er det som skal skje når "vis data" knappen er trykket
+    raw_historical_data = fetch_data_time(start_date, end_date) #henter nødvendig data fra alle de forskjellige
     results = clean_data(raw_historical_data)
     historical_data = results["cleaned_data"]
     outliers = results["outliers"]
@@ -185,15 +185,17 @@ if st.session_state.get("show_data", False):
     correlation = results["correlation"]
 
 
-    main_tab = st.tabs(["Historisk data", "Prediksjon"])
+    main_tab = st.tabs(["Historisk data", "Prediksjon"]) # her lager vi layouten til appen, bruker funksjoner og klasser for å vise data i respektive tabs
     with main_tab[0]:
         st.subheader("Historisk data")
         plot_historical_data(historical_data)
+
+
         st.markdown("""
                 <hr style="border: 2px solid #bbb; margin: 45px 0;">
                 """, unsafe_allow_html=True)
 
-        sub_tabs_hist = st.tabs(["Rådata", "Renset data", "Uteliggere", "Transformasjoner"])
+        sub_tabs_hist = st.tabs(["Rådata", "Renset data", "Uteliggere", "Transformasjoner"]) # her lage nedlastningsknapper for de forskjellige datasettene
         with sub_tabs_hist[0]:
             if raw_historical_data is not None and not raw_historical_data.empty:
                 st.subheader("last ned rådata")
@@ -242,6 +244,8 @@ if st.session_state.get("show_data", False):
     with main_tab[1]:
         st.subheader("Prediksjon")
         plot_predictive_data(historical_data, prediction_days)
+
+
         sub_tabs_pred = st.tabs(["Korrelasjon", "Statistikk"])
         st.markdown("""
                 <hr style="border: 2px solid #bbb; margin: 45px 0;">
@@ -276,3 +280,4 @@ if st.session_state.get("show_data", False):
             )
             st.write(statistics)
 
+#vi bruker session state for å holde på kontinuiteten i appen, slik at hvis du endrer på prediksjonsdatoene så vil ikke dataene bli hentet på nytt
