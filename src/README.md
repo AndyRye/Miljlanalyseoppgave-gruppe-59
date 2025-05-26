@@ -1,1 +1,0 @@
-Explains the source code structure
