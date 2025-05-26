@@ -12,9 +12,17 @@ appen inkluderer statistikk, Maskinlæring, visualisering og analyse av rådatae
 
 
 ## Hvordan kjøre koden
-For å åpne Vær appen må du kjøre:
-        streamlit run data\main_app.py
+#### For å åpne Vær appen må du kjøre:
+- streamlit run data\main_app.py
+
 i rot-terminalen
+#### Klone repoet:
+- git clone https://github.com/AndyRye/Miljlanalyseoppgave-gruppe-59
+
+#### Laste ned requirements.txt
+- pip install -r requirements.txt
+
+
 
 ## Hvordan funker Appen?
 App-GUIen satt opp i to hoveddeler, en sidebar og en hoveddel
@@ -130,9 +138,9 @@ Disse verdiene vil bli returnert ti grader. (skriv noe om verdiene vi fikk)
 
 - Her tester vi at enkelte sentrale funksjoner i FrostAPI fungerer. Vi har valgt å bruke mock for denne unittesten. Dette gjør det mulig å lage falske svarobjekter, i steden for at vi for å kalle frost APIen. Vi kan også enklere kontrollere hvilke data som skal brukes i testingen.  
 
-- Tester at fetch_elementvalue fungerer som den skal slik at elementId henter korrekt og at metoden kan returnerer None når ID ikke finnes.
+- Videre har vi testet at fetch_elementvalue fungerer som den skal slik at elementId henter korrekt og at metoden kan returnerer None når ID ikke finnes.
 
-- Tester at periodisk henting fungerer, og at ett ugyldig intervall vil kaste en ValueError. Dette er viktig at metoden validerer inputen som blir gitt og gir en klar feilmelding hvis brukeren ber om et ukjent intervall. 
+- Videre tester vi at periodisk henting fungerer, og at ett ugyldig intervall vil kaste en ValueError. Dette er viktig at metoden validerer inputen som blir gitt og gir en klar feilmelding hvis brukeren ber om et ukjent intervall. 
 
 ### Enhetsstester for PredictiveAnalysis
 
@@ -140,6 +148,22 @@ Disse verdiene vil bli returnert ti grader. (skriv noe om verdiene vi fikk)
 
 - Videre bruker vi forecast metoden til å bygge videre på predict, som itererer for flere steg fram i tid. Testen verifiserer at den returnerer riktig antall flyttall samt sjekke at alle talene er riktig datatype
 
+### Enhetstester for DataPlotting
+
+- Bruker setUp() for å lage ett data sett som brukes i testing. 
+
+- test_histogram_returns_figure() sjekker at plot_histogram() returnerer en gydlig plotly til streamlit applikasjonen. 
+
+- test_box_plot_not_none() sjekker at plot_box_plot() plotter en box plot når det finnes tilgjenglig data for plotting. 
+
+### Enhetstester for PlottingPredictiveAnalysis
+
+- Lager et testobjekt som brukes til videre testing. 
+
+- test_plot_predictive_analysis() sjekker at serienavnene er riktig. 
+
+- test_plot_forecast() sjekker at serianvnenn stemmer samt sjekekr at forecast verdiene plottes riktig. 
+
 ### Oppsummering 
 
-Alle testene er blitt kjørt og fått OK status. Dermed er vi sikre på at sentrale deler av koden kjører og fungerer som ønsket. 
+- Alle testene er blitt kjørt og fått OK status. Dermed er vi sikre på at sentrale deler av koden kjører og fungerer som ønsket. For å kjøre testene skriver man python -m unittest tests/"testen_man_vil_kjøre.py"
