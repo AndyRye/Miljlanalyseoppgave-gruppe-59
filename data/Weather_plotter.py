@@ -10,10 +10,9 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.data_collection.frost import FrostAPI
-from src.visualization.plotting_frost_api import DataPlotting
-from src.visualization.plotting_predictive_analysis import PlottingPredictiveAnalysis
-from src.analysis.predictive_analysis import PredictiveAnalysis
-from src.analysis.data_analysis import DataAnalyse
+from src.visualization.plot_frost import DataPlotting
+from src.visualization.plot_predictive import PlottingPredictiveAnalysis
+from src.analysis.data_analysis import DataAnalysis
 
 
 
@@ -83,7 +82,7 @@ def fetch_data_time(start_date, end_date):
         
 
 def clean_data(df, z_score_threshold=3):
-    data_analyzer = DataAnalyse(df)
+    data_analyzer = DataAnalysis(df)
     all_outliers = pd.DataFrame()
     transformed_columns = {}
     for column in df.select_dtypes(include=['float64', 'int64']).columns:

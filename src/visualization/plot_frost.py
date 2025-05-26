@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 import webbrowser
 import seaborn as sns
 
-from src.data_collection import FrostAPI
+from src.data_collection.frost import FrostAPI
 from src.analysis import DataAnalysis
 
 
