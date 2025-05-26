@@ -20,7 +20,7 @@ from src.analysis import DataAnalysis
 class DataPlotting: 
 
     def __init__(self, data):
-        #Removes duplicated indexes
+        #Fjerner dupliserte indekser
         data = data[~data.index.duplicated(keep='first')]
         self.data = data
 
